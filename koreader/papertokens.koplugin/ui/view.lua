@@ -242,7 +242,7 @@ function View:paintTo(bb, x, y)
     bb:paintRect(0, 0, self.screen_w, self.screen_h, WHITE)
 
     if #self.session.declared == 0 then
-        local face = Render.face_px(math.floor(self.dpi * 0.10), false)
+        local face = Render.face_px(math.floor(self.dpi * 0.10))
         local msg = "Mantén A para elegir tokens"
         local tw = RenderText:sizeUtf8Text(0, self.screen_w, face, msg, true, false).x
         RenderText:renderUtf8Text(bb, math.floor((self.screen_w - tw) / 2),
@@ -274,7 +274,7 @@ end
 function View:paintStatus(bb)
     if self.status_h <= 0 then return end
     bb:paintRect(0, 0, self.screen_w, self.status_h, WHITE)
-    local face = Render.face_px(math.floor(self.status_h * 0.62), false)
+    local face = Render.face_px(math.floor(self.status_h * 0.62))
     local txt = (self.log[1] or "listo")
         .. "  |  ghost " .. tostring(self.session.ghosting_budget)
         .. "  |  " .. self.partial_mode
@@ -290,7 +290,7 @@ function View:paintButtonBar(bb, labels)
     local by = self.screen_h - self.bar_h
     bb:paintRect(0, by, self.screen_w, self.bar_h, WHITE)
     bb:paintRect(0, by, self.screen_w, 2, BLACK)
-    local face = Render.face_px(math.floor(self.bar_h * 0.38), true)
+    local face = Render.face_px(math.floor(self.bar_h * 0.38))
     for i = 1, 3 do
         local zx = math.floor(self.screen_w * (i - 1) / 3)
         local zw = math.floor(self.screen_w / 3)
@@ -305,8 +305,8 @@ end
 function View:paintSelector(bb)
     bb:paintRect(0, 0, self.screen_w, self.screen_h, WHITE)
     local defs = self.session.profile.defs
-    local face = Render.face_px(math.floor(self.dpi * 0.055), true)
-    local title_face = Render.face_px(math.floor(self.dpi * 0.045), true)
+    local face = Render.face_px(math.floor(self.dpi * 0.055))
+    local title_face = Render.face_px(math.floor(self.dpi * 0.045))
     RenderText:renderUtf8Text(bb, 20, self.status_h + 40, title_face,
         "Tipos en juego (" .. #self.session.declared .. "/6)", true, true, BLACK)
 

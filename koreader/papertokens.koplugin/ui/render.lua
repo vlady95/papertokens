@@ -32,14 +32,15 @@ local WHITE = Blitbuffer.COLOR_WHITE
 -- sonda grande en vez de leer internals, así sobrevive a cambios de versión.
 local scale_probe = Screen:scaleBySize(1000) / 1000
 
+-- El negrita se aplica al renderizar (parámetro `bold` de renderUtf8Text),
+-- no en la face: aquí solo importa la talla.
 local face_cache = {}
-local function face_px(px, bold)
+local function face_px(px)
     local design = math.max(8, math.floor(px / scale_probe + 0.5))
-    local key = design .. (bold and "b" or "r")
-    if not face_cache[key] then
-        face_cache[key] = Font:getFace(bold and "cfont" or "cfont", design)
+    if not face_cache[design] then
+        face_cache[design] = Font:getFace("cfont", design)
     end
-    return face_cache[key]
+    return face_cache[design]
 end
 
 function Render.mm_to_px(mm, dpi)
@@ -154,7 +155,7 @@ local function paint_colors(bb, x, y, size, colors, mode)
             paint_hatch(bb, cx, y, size, size, HATCH[c] or HATCH.C)
         else
             bb:paintBorder(cx, y, size, size, 2, BLACK, 3)
-            local face = face_px(math.floor(size * 0.66), true)
+            local face = face_px(math.floor(size * 0.66))
             local letter = COLOR_LETTER[c] or "C"
             local tw = RenderText:sizeUtf8Text(0, size, face, letter, true, true).x
             local baseline = y + math.floor(size * 0.75)
@@ -171,7 +172,7 @@ end
 -- apaisada con contorno (el eco de girar la carta).
 
 local function paint_counts(bb, x, y, h, count_a, count_b)
-    local face = face_px(math.floor(h * 0.72), true)
+    local face = face_px(math.floor(h * 0.72))
     local w_a = math.floor(h * 0.72)
     bb:paintRect(x, y, w_a, h, BLACK)
     local ta = tostring(count_a)
@@ -186,7 +187,7 @@ local function paint_counts(bb, x, y, h, count_a, count_b)
     local by = y + math.floor((h - bh) / 2)
     bb:paintBorder(bx, by, bw, bh, 2, BLACK, 3)
     local tb = tostring(count_b)
-    local face_b = face_px(math.floor(bh * 0.68), true)
+    local face_b = face_px(math.floor(bh * 0.68))
     local twb = RenderText:sizeUtf8Text(0, bw, face_b, tb, true, true).x
     RenderText:renderUtf8Text(bb, bx + math.floor((bw - twb) / 2),
         by + math.floor(bh * 0.76), face_b, tb, true, true, BLACK)
@@ -242,7 +243,7 @@ function Render.zone(bb, rect, def, state, opts)
                 bb:blitFrom(icon, ix + math.floor((iw - icon_side) / 2), iy, 0, 0,
                     icon_side, icon_side)
             else
-                local face = face_px(math.floor(icon_side * 0.3), true)
+                local face = face_px(math.floor(icon_side * 0.3))
                 local name = ellipsize(face, def.name, iw)
                 RenderText:renderUtf8Text(bb, ix, iy + math.floor(icon_side * 0.5),
                     face, name, true, true, BLACK)
@@ -255,7 +256,7 @@ function Render.zone(bb, rect, def, state, opts)
     else
         -- FULL: ícono + nombre + P/T + cantidad + indicador de color
         local name_h = math.max(18, math.floor(ih * 0.13))
-        local face_name = face_px(name_h, true)
+        local face_name = face_px(name_h)
         RenderText:renderUtf8Text(bb, ix, iy + name_h,
             face_name, ellipsize(face_name, def.name, iw), true, true, BLACK)
 
@@ -269,7 +270,7 @@ function Render.zone(bb, rect, def, state, opts)
                 bb:blitFrom(icon, ix + math.floor((iw - icon_side) / 2), body_y, 0, 0,
                     icon_side, icon_side)
             else
-                local face = face_px(math.floor(body_h * 0.22), false)
+                local face = face_px(math.floor(body_h * 0.22))
                 RenderText:renderUtf8Text(bb, ix, body_y + math.floor(body_h * 0.5),
                     face, ellipsize(face, def.name, iw), true, false, BLACK)
             end
@@ -278,7 +279,7 @@ function Render.zone(bb, rect, def, state, opts)
         -- P/T: solo criaturas
         if def.power ~= nil then
             local pt = tostring(def.power) .. "/" .. tostring(def.toughness)
-            local face_pt = face_px(math.floor(ch * 0.62), true)
+            local face_pt = face_px(math.floor(ch * 0.62))
             local tw = RenderText:sizeUtf8Text(0, iw, face_pt, pt, true, true).x
             local px = ix + iw - tw - pad
             local py = body_y + body_h - math.floor(ch * 0.7)
