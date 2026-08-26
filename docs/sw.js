@@ -1,9 +1,9 @@
 // Generado por scripts/build-sw.mjs — no editar a mano.
-const CACHE = 'papertokens-a6d1b5506c52';
+const CACHE = 'papertokens-bf3c023cd8e3';
 const PRECACHE = [
   "./",
-  "./assets/index-CmblvLd1.js",
-  "./assets/index-CmdFQ6vl.css",
+  "./assets/index-BsV9wdTB.css",
+  "./assets/index-FE1xLe51.js",
   "./favicon.svg",
   "./icons.svg",
   "./icons/apple-touch-icon.png",

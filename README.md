@@ -25,8 +25,8 @@ Sesión completa con persistencia:
   guardan siempre la proporción 63×88 de una carta física — nunca se
   estiran. Carrusel fijo abajo con el catálogo del día, paginado por taps
   con bloques negros de chevron (sin scroll horizontal, deliberadamente).
-  Las fichas sin fuerza/resistencia muestran su texto de reglas recortado;
-  las criaturas, el badge de P/T.
+  El texto de reglas solo existe en la vista expandida (long-press); la
+  ficha mini nunca lo muestra.
 - **Ficha** (según la referencia de diseño) — marco redondeado con barra de
   título (nombre + letra de color), caja de arte placeholder, barra de tipo y
   badge de fuerza/resistencia montado sobre el borde del arte. Encima, una

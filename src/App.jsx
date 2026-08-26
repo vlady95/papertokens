@@ -613,9 +613,6 @@ function Ficha({ token, entry, onTapOne, onPlus, onMinus, onUntapType, onExpand 
               )}
             </div>
             <div className="type-bar">{shortTypeLine(token)}</div>
-            {!token.isCreature && token.oracleText && (
-              <div className="mini-rules">{token.oracleText}</div>
-            )}
           </div>
           <button className="orb orb-plus" onClick={onPlus} aria-label="Crear un token">
             +
