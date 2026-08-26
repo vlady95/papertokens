@@ -1,22 +1,44 @@
 #!/bin/sh
-# Deploy del plugin al Kindle por SSH (USBNetwork), un comando:
-#   ./deploy.sh [ip]
-# IP por argumento, variable KINDLE_IP, o la clásica de USBNetwork.
+# Deploy del plugin al Kindle. Un comando:
 #
-# VERIFICAR contra la instalación real (ver README): la ruta del directorio
-# de plugins y el mecanismo de reinicio de KOReader de ESTA instalación.
+#   ./deploy.sh              → USB mass storage (el Kindle montado en /Volumes)
+#   ./deploy.sh 192.168.15.244 → USBNetwork por SSH
+#
+# VERIFICADO en el device (KOReader v2026.07.1): el directorio de plugins es
+# koreader/plugins/ en la raíz de la unidad, que en USBNetwork corresponde a
+# /mnt/us/koreader/plugins.
+#
+# Nota: en modo USB mass storage KOReader NO está corriendo. Tras copiar hay
+# que expulsar la unidad y abrir KOReader en el Kindle.
 set -e
 
-IP="${1:-${KINDLE_IP:-192.168.15.244}}"
-PLUGIN_DIR="/mnt/us/koreader/plugins" # ← pendiente de verificar en el device
-
 cd "$(dirname "$0")"
+SRC="papertokens.koplugin"
+EXCLUDES="--exclude tests --exclude assets/src --exclude .DS_Store"
 
-rsync -av --delete --exclude 'assets/src' --exclude 'tests' \
-  papertokens.koplugin/ "root@$IP:$PLUGIN_DIR/papertokens.koplugin/"
-
-# Reinicio de KOReader. En Kindle suele bastar matar el proceso y relanzar
-# desde KUAL; si esta instalación tiene un mecanismo propio, ajustarlo aquí.
-ssh "root@$IP" "pkill -f koreader.sh || pkill luajit || true"
-
-echo "Listo. Relanza KOReader en el Kindle si no se reinició solo."
+if [ -n "$1" ]; then
+    IP="$1"
+    echo "Deploy por SSH a $IP…"
+    rsync -av --delete $EXCLUDES \
+        "$SRC/" "root@$IP:/mnt/us/koreader/plugins/$SRC/"
+    ssh "root@$IP" "pkill -f koreader.sh || pkill luajit || true"
+    echo "Listo. Relanza KOReader en el Kindle si no se reinició solo."
+else
+    VOL="${KINDLE_VOLUME:-/Volumes/Kindle}"
+    if [ ! -d "$VOL/koreader" ]; then
+        echo "No encuentro KOReader en $VOL." >&2
+        echo "Conecta el Kindle por USB (o pasa la IP para USBNetwork)." >&2
+        exit 1
+    fi
+    DEST="$VOL/koreader/plugins/$SRC"
+    echo "Deploy por USB a $DEST…"
+    mkdir -p "$DEST"
+    rsync -av --delete $EXCLUDES "$SRC/" "$DEST/"
+    # FAT32 no guarda el bit de ejecución; nada del plugin lo necesita.
+    sync
+    echo ""
+    echo "Copiado. Ahora en el Kindle:"
+    echo "  1. Expulsa la unidad:  diskutil eject $VOL"
+    echo "  2. Abre KOReader"
+    echo "  3. Menú ☰ → Herramientas (more tools) → PaperTokens → Nueva sesión"
+fi
