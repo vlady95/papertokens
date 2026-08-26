@@ -96,6 +96,24 @@ archivo exacto que espera `public/tokens/`.
 - `scripts/test-session.mjs` — guion de partida contra la lógica de sesión.
 - `src/App.jsx` — todas las pantallas.
 
+## Publicación (GitHub Pages + PWA)
+
+La app vive en https://vlady95.github.io/papertokens/ como PWA offline-first:
+`vite build` genera `docs/` (rutas relativas, `base: './'`) y
+`scripts/build-sw.mjs` escribe `docs/sw.js`, que precachea todo el build con
+un nombre de caché derivado del contenido — cambia en cada publicación.
+GitHub Pages sirve `docs/` desde la rama `main`.
+
+Para publicar cambios:
+
+```
+npm run build
+git add -A && git commit -m "..." && git push
+```
+
+Esperar ~1 min a que Pages reconstruya y abrir la app con conexión para que
+tome la versión nueva.
+
 ## Correr
 
 ```
