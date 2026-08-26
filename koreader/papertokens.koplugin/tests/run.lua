@@ -1,9 +1,9 @@
--- Tests de core/ corriendo en el Mac, sin KOReader:
---   luajit tests/run.lua        (desde koreader/papertokens.koplugin/)
+-- Tests de core/ en el Mac, sin KOReader:
+--   luajit tests/run.lua       (desde koreader/papertokens.koplugin/)
 --
--- Verifica el motor de layout contra las dimensiones del Kindle PW3 en
--- horizontal (1448x1072 @ 300 dpi) y contra el panel objetivo (800x480 @
--- 125 dpi), y las reglas duras de la máquina de sesión.
+-- Verifica que el motor de layout y la máquina de sesión se comporten como
+-- la app web, contra las dimensiones reales del Kindle PW3 en vertical
+-- (1072x1448 @ 300 dpi) y del panel objetivo.
 
 package.path = "./?.lua;" .. package.path
 
@@ -11,9 +11,7 @@ local layout = require("core/layout")
 local model = require("core/model")
 local session = require("core/session")
 
-local failures = 0
-local checks = 0
-
+local failures, checks = 0, 0
 local function check(cond, label)
   checks = checks + 1
   if not cond then
@@ -26,127 +24,141 @@ local function overlap(a, b)
   return a.x < b.x + b.w and b.x < a.x + a.w and a.y < b.y + b.h and b.y < a.y + a.h
 end
 
-local function verify_geometry(rects, w, h, label)
-  for i, r in ipairs(rects) do
-    check(r.x >= 0 and r.y >= 0 and r.x + r.w <= w and r.y + r.h <= h,
-      label .. ": rect " .. i .. " dentro de pantalla")
-    check(r.w > 0 and r.h > 0, label .. ": rect " .. i .. " con área")
-    for j = i + 1, #rects do
-      check(not overlap(r, rects[j]),
-        label .. ": rects " .. i .. " y " .. j .. " no se enciman")
+local DEVICES = {
+  { name = "Kindle PW3 vertical", w = 1072, h = 1448 - 150 - 190, dpi = 300 },
+  { name = "Panel objetivo",      w = 800,  h = 480 - 60 - 80,    dpi = 125 },
+}
+local OPTS = { pill_h = 90, gap = 12, orb = 96 }
+
+for _, d in ipairs(DEVICES) do
+  print("layout @ " .. d.name)
+  for n = 1, layout.MAX_ACTIVE do
+    local zones = layout.layout(d.w, d.h, n, OPTS)
+    check(#zones == n, d.name .. " n=" .. n .. ": " .. n .. " zonas")
+
+    for i, z in ipairs(zones) do
+      -- la carta jamás se estira
+      local ratio = z.card.w / z.card.h
+      local want = layout.CARD_W / layout.CARD_H
+      check(math.abs(ratio - want) < 0.02,
+        string.format("%s n=%d carta %d proporción %.3f (esperada %.3f)",
+          d.name, n, i, ratio, want))
+      -- dentro de la celda y de pantalla
+      check(z.card.x >= 0 and z.card.y >= 0
+        and z.card.x + z.card.w <= d.w and z.card.y + z.card.h <= d.h,
+        d.name .. " n=" .. n .. " carta " .. i .. " dentro de pantalla")
+      check(z.card.y >= z.cell.y + OPTS.pill_h,
+        d.name .. " n=" .. n .. " carta " .. i .. " debajo de su píldora")
+      -- celdas sin traslape
+      for j = i + 1, #zones do
+        check(not overlap(z.cell, zones[j].cell),
+          d.name .. " n=" .. n .. ": celdas " .. i .. " y " .. j .. " no se enciman")
+      end
+    end
+
+    -- n=3: las tres cartas del mismo tamaño (regla de la web)
+    if n == 3 then
+      check(zones[1].card.w == zones[3].card.w and zones[1].card.h == zones[3].card.h,
+        d.name .. " n=3: la carta de abajo mide igual que las de arriba")
     end
   end
 end
 
-local function tiers_of(rects)
-  local t = {}
-  for i, r in ipairs(rects) do t[i] = r.tier end
-  return table.concat(t, ",")
-end
-
--- ---- layout: Kindle PW3 horizontal ----
-print("layout @ Kindle PW3 (1448x1072, 300 dpi, horizontal)")
-local expected_kindle = {
-  [1] = "FULL",
-  [2] = "FULL,FULL",
-  [3] = "FULL,FULL,FULL",
-  [4] = "FULL,FULL,FULL,FULL",
-  [5] = "FULL,COMPACT,COMPACT,COMPACT,COMPACT",
-  [6] = "FULL,MINIMAL,MINIMAL,MINIMAL,MINIMAL,MINIMAL",
+-- Con la proporción del teléfono, la regla "maximiza la carta" debe elegir
+-- exactamente las plantillas de la app web. Si esto falla, el port dejó de
+-- ser fiel a la web y se volvió un rediseño.
+print("fidelidad con la app web (375x616 @ 2x, medidas del CSS)")
+local WEB = { pill_h = 48, gap = 8, orb = 48 }
+local web_expected = {
+  [1] = { 1, 1 },  -- una carta a pantalla
+  [2] = { 1, 2 },  -- dos apiladas verticalmente
+  [3] = { 2, 2 },  -- dos arriba y una abajo, centrada
+  [4] = { 2, 2 },  -- cuadrícula 2x2
 }
-for n = 1, 6 do
-  local rects = layout.layout(1448, 1072, 300, n)
-  check(#rects == n, "kindle n=" .. n .. ": " .. n .. " rects")
-  verify_geometry(rects, 1448, 1072, "kindle n=" .. n)
-  check(tiers_of(rects) == expected_kindle[n],
-    "kindle n=" .. n .. ": tiers " .. expected_kindle[n] .. " (obtuvo " .. tiers_of(rects) .. ")")
+for n = 1, 4 do
+  local cols, rows = layout.arrangement(375, 616, n, WEB)
+  local want = web_expected[n]
+  check(cols == want[1] and rows == want[2],
+    string.format("web n=%d: %dx%d (esperado %dx%d)", n, cols, rows, want[1], want[2]))
+end
+-- Y en una pantalla más ancha la misma regla reparte distinto, en vez de
+-- desperdiciar el ancho apilando.
+local kcols, krows = layout.arrangement(1072, 928, 2, { pill_h = 130, gap = 24, orb = 130 })
+check(kcols == 2 and krows == 1,
+  string.format("Kindle n=2: %dx%d (dos columnas, no apiladas)", kcols, krows))
+
+-- El layout depende solo de n, nunca de las cantidades.
+print("layout estable")
+local a = layout.layout(1072, 1108, 2, OPTS)
+local b = layout.layout(1072, 1108, 2, OPTS)
+check(a[1].card.w == b[1].card.w and a[2].card.y == b[2].card.y,
+  "mismo n ⇒ mismo layout")
+
+-- ---- sesión: el guion de la partida real ----
+print("sesión (guion de la web)")
+local s = session.new(model.pauper_profile())
+local GOBLIN, SPIRIT = 4, 5 -- índices en el perfil hardcoded
+
+local function counts(i)
+  local t = s.active[i]
+  if not t then return "(fuera)" end
+  return t.count_a .. " destapados, " .. t.count_b .. " tapeados"
 end
 
--- ---- layout: panel objetivo ----
-print("layout @ panel objetivo (800x480, 125 dpi)")
-local expected_target = {
-  [1] = "FULL",
-  [2] = "FULL,FULL",
-  [3] = "FULL,FULL,FULL",
-  [4] = "FULL,FULL,FULL,FULL",
-  [5] = "FULL,COMPACT,COMPACT,COMPACT,COMPACT",
-  [6] = "FULL,MINIMAL,MINIMAL,MINIMAL,MINIMAL,MINIMAL",
-}
-for n = 1, 6 do
-  local rects = layout.layout(800, 480, 125, n)
-  check(#rects == n, "target n=" .. n .. ": " .. n .. " rects")
-  verify_geometry(rects, 800, 480, "target n=" .. n)
-  check(tiers_of(rects) == expected_target[n],
-    "target n=" .. n .. ": tiers " .. expected_target[n] .. " (obtuvo " .. tiers_of(rects) .. ")")
-end
+check(session.create(s, GOBLIN).kind == "reflow", "tipo nuevo ⇒ reflow")
+check(session.create(s, GOBLIN).kind == "partial", "misma cantidad ⇒ parcial, nunca reflow")
+session.create(s, GOBLIN)
+check(counts(1) == "3 destapados, 0 tapeados", "creo 3: " .. counts(1))
 
--- ---- umbral en mm, no en píxeles: mismo px, distinto dpi ----
-print("umbrales físicos (mismos px, distinto dpi)")
-local hi = layout.layout(1448, 1072, 300, 6)
-local lo = layout.layout(1448, 1072, 125, 6)
-check(hi[2].tier == "MINIMAL" and lo[2].tier == "FULL",
-  "el mismo rect en px cambia de tier con el dpi")
+session.tap(s, 1)
+session.tap(s, 1)
+check(counts(1) == "1 destapados, 2 tapeados", "ataco con 2: " .. counts(1))
 
--- ---- sesión: orden estable y reglas de reflow ----
-print("sesión")
-local profile = model.pauper_profile()
-local s = session.new(profile)
+session.destroy(s, 1)
+check(counts(1) == "1 destapados, 1 tapeados", "uno muere bloqueando: " .. counts(1))
 
-check(session.declare(s, 1).kind == "reflow", "declarar dispara reflow")
-session.declare(s, 3)
-session.declare(s, 5)
-check(s.declared[1] == 1 and s.declared[2] == 3 and s.declared[3] == 5,
-  "orden de inserción")
-session.declare(s, 2)
-check(s.declared[1] == 1 and s.declared[2] == 3 and s.declared[3] == 5 and s.declared[4] == 2,
-  "declarar nuevo NUNCA reordena los existentes")
-check(session.declare(s, 2).kind == "none", "declarar duplicado no hace nada")
+session.untap_all(s)
+check(counts(1) == "2 destapados, 0 tapeados", "untap all: " .. counts(1))
 
--- la cantidad nunca dispara reflow, ni al llegar a 0
-local ev = session.inc(s)
-check(ev.kind == "partial", "inc → partial")
-session.inc(s)
-ev = session.tap_one(s)
-check(ev.kind == "partial", "tap_one → partial")
-ev = session.dec(s) -- resta tapped primero
-check(s.states[1].count_b == 0 and s.states[1].count_a == 1, "dec resta tapped primero")
-session.dec(s)
-ev = session.dec(s) -- ya en 0
-check(ev.kind == "none", "dec en 0 no hace nada (y jamás reflow)")
-check(#s.declared == 4, "llegar a 0 no elimina el tipo")
+-- destruir hasta cero saca el tipo (comportamiento de la web) ⇒ reflow
+session.destroy(s, 1)
+check(session.is_last(s, 1), "con 1 token el orbe − es bote de basura")
+check(session.destroy(s, 1).kind == "reflow", "llegar a 0 saca el tipo ⇒ reflow")
+check(#s.active == 0, "la zona activa queda vacía")
+
+-- orden de inserción estable
+for _, d in ipairs({ 1, 3, 5 }) do session.create(s, d) end
+check(s.active[1].def_index == 1 and s.active[2].def_index == 3
+  and s.active[3].def_index == 5, "orden de inserción")
+session.create(s, 2)
+check(s.active[4].def_index == 2 and s.active[1].def_index == 1,
+  "un tipo nuevo nunca reordena los existentes")
+check(session.create(s, 6).kind == "none", "tope de 4 tipos simultáneos")
+
+-- untap por tipo: no toca a los demás
+session.tap(s, 1)
+session.tap(s, 2)
+session.untap_type(s, 1)
+check(s.active[1].count_b == 0 and s.active[2].count_b == 1,
+  "untap de un tipo no destapa los otros")
 
 -- tope de cantidad
-for _ = 1, 12 do session.inc(s) end
-check(s.states[1].count_a == model.COUNT_MAX, "cantidad topada en " .. model.COUNT_MAX)
+for _ = 1, 12 do session.create(s, 1) end
+check(s.active[1].count_a + s.active[1].count_b == model.COUNT_MAX,
+  "cantidad topada en " .. model.COUNT_MAX)
 
--- ciclado
-local old_active = s.active
-ev = session.cycle_active(s, 1)
-check(s.active == old_active + 1 and ev.kind == "partial" and #ev.zones == 2,
-  "ciclar repinta dos zonas, sin reflow")
+-- reiniciar partida
+check(session.reset(s).kind == "reflow", "reiniciar ⇒ reflow")
+check(#s.active == 0, "reiniciar vacía la zona activa")
 
 -- presupuesto de ghosting
-local s2 = session.new(profile, { ghosting_budget = 3 })
-session.declare(s2, 1)
-session.inc(s2); session.inc(s2)
-ev = session.inc(s2)
-check(ev.kind == "zone_full" and ev.zones[1] == 1,
-  "al agotar presupuesto la zona pide refresco completo")
-ev = session.inc(s2)
-check(ev.kind == "partial", "tras el refresco completo el contador se reinicia")
-
--- modo layout fijo
-local s3 = session.new(profile, { frozen = true })
-check(session.declare(s3, 1).kind == "blocked", "layout fijo bloquea declarar")
-
--- zonas en n=5: el activo ocupa la principal
-local s5 = session.new(profile)
-for i = 1, 5 do session.declare(s5, i) end
-s5.active = 3
-check(session.zone_of(s5, 3) == 1, "n=5: el activo vive en la zona principal")
-check(session.zone_of(s5, 1) == 2 and session.zone_of(s5, 2) == 3 and
-      session.zone_of(s5, 4) == 4 and session.zone_of(s5, 5) == 5,
-  "n=5: los demás llenan la franja en orden de inserción")
+local g = session.new(model.pauper_profile(), { ghosting_budget = 3 })
+session.create(g, 1)
+session.create(g, 1)
+session.create(g, 1)
+check(session.create(g, 1).kind == "zone_full",
+  "al agotar el presupuesto la zona pide refresco completo")
+check(session.create(g, 1).kind == "partial", "y el contador se reinicia")
 
 print(string.format("\n%d checks, %d fallas", checks, failures))
 os.exit(failures == 0 and 0 or 1)

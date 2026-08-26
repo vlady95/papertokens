@@ -1,8 +1,6 @@
--- Reporte de calibración: qué tiers salen con la geometría REAL del
--- dispositivo, ya descontadas la franja de botones y la de estado.
+-- Reporte de geometría: qué tamaño tiene la carta con la geometría REAL del
+-- dispositivo, ya descontadas las franjas de header y carrusel.
 --   luajit tests/report.lua
---
--- Es el dato que esta fase debe producir para ajustar config/thresholds.lua.
 
 package.path = "./?.lua;" .. package.path
 
@@ -10,29 +8,32 @@ local layout = require("core/layout")
 local config = require("config/thresholds")
 
 local function mm(px, dpi) return px / dpi * 25.4 end
-local function px(mm_, dpi) return math.floor(mm_ * dpi / 25.4 + 0.5) end
+local function px(v, dpi) return math.floor(v * dpi / 25.4 + 0.5) end
 
 local devices = {
-  { name = "Kindle PW3 landscape", w = 1448, h = 1072, dpi = 300 },
-  { name = "Panel objetivo",       w = 800,  h = 480,  dpi = 125 },
+  { name = "Kindle PW3 vertical", w = 1072, h = 1448, dpi = 300 },
+  { name = "Panel objetivo",      w = 480,  h = 800,  dpi = 125 },
 }
 
 for _, d in ipairs(devices) do
-  local bar = px(config.button_bar_mm or 0, d.dpi)
-  local status = px(config.status_bar_mm or 0, d.dpi)
-  local cw, ch = d.w, d.h - bar - status
+  local header = px(config.header_mm, d.dpi)
+  local carousel = px(config.carousel_mm, d.dpi)
+  local opts = {
+    pill_h = px(config.pill_mm, d.dpi),
+    gap = px(2, d.dpi),
+    orb = px(config.orb_mm, d.dpi),
+  }
+  local cw, ch = d.w, d.h - header - carousel
   print(string.format("\n=== %s ===", d.name))
   print(string.format("pantalla %dx%d px = %.1f x %.1f mm @ %d dpi",
     d.w, d.h, mm(d.w, d.dpi), mm(d.h, d.dpi), d.dpi))
-  print(string.format("contenido %dx%d px = %.1f x %.1f mm (botones %d px, estado %d px)",
-    cw, ch, mm(cw, d.dpi), mm(ch, d.dpi), bar, status))
-  for n = 1, 6 do
-    local rects = layout.layout(cw, ch, d.dpi, n, config)
-    local parts = {}
-    for i, r in ipairs(rects) do
-      parts[i] = string.format("%.0fx%.0fmm %s", mm(r.w, d.dpi), mm(r.h, d.dpi), r.tier)
-    end
-    print(string.format("  n=%d  %s", n, table.concat(parts, " | ")))
+  print(string.format("zona activa %dx%d px = %.1f x %.1f mm",
+    cw, ch, mm(cw, d.dpi), mm(ch, d.dpi)))
+  for n = 1, layout.MAX_ACTIVE do
+    local zones = layout.layout(cw, ch, n, opts)
+    local c = zones[1].card
+    print(string.format("  n=%d  carta %dx%d px = %.0f x %.0f mm  (carta real: 63 x 88 mm)",
+      n, c.w, c.h, mm(c.w, d.dpi), mm(c.h, d.dpi)))
   end
 end
 print("")

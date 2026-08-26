@@ -1,12 +1,11 @@
 -- main.lua — integración con KOReader. DESECHABLE.
 --
--- Patrón verificado contra plugins/hello.koplugin y readtimer.koplugin de
--- la instalación real (KOReader v2026.07.1): WidgetContainer:extend,
--- self.ui.menu:registerToMainMenu(self), addToMainMenu(menu_items) con
--- sorting_hint.
+-- Patrón verificado contra plugins/hello.koplugin y readtimer.koplugin de la
+-- instalación real (v2026.07.1): WidgetContainer:extend,
+-- self.ui.menu:registerToMainMenu(self), addToMainMenu con sorting_hint.
 --
--- core/ NO hace require de nada de KOReader; esa dependencia solo vive aquí
--- y en ui/. El package.path se extiende para que `require("core/...")`
+-- core/ NO hace require de nada de KOReader; esa dependencia vive solo aquí
+-- y en ui/. El package.path se extiende para que require("core/...")
 -- resuelva dentro del directorio del plugin.
 
 local Dispatcher = require("dispatcher")
@@ -40,24 +39,22 @@ function PaperTokens:init()
     self.ui.menu:registerToMainMenu(self)
 end
 
-function PaperTokens:openSession(frozen)
-    local profile = model.pauper_profile()
-    local s = session.new(profile, {
+function PaperTokens:openSession()
+    local s = session.new(model.pauper_profile(), {
         ghosting_budget = config.ghosting_budget,
-        frozen = frozen or false,
     })
     self.view = View:new{
         session = s,
         config = config,
         plugin_dir = plugin_dir,
+        partial_mode = config.partial_mode,
     }
-    logger.info("PaperTokens: sesión abierta,",
-        "frozen=" .. tostring(frozen), "ghosting=" .. tostring(config.ghosting_budget))
+    logger.info("PaperTokens: sesión abierta, ghosting =", config.ghosting_budget)
     UIManager:show(self.view)
 end
 
 function PaperTokens:onPaperTokensOpen()
-    self:openSession(false)
+    self:openSession()
     return true
 end
 
@@ -68,11 +65,7 @@ function PaperTokens:addToMainMenu(menu_items)
         sub_item_table = {
             {
                 text = _("Nueva sesión"),
-                callback = function() self:openSession(false) end,
-            },
-            {
-                text = _("Nueva sesión (layout fijo / torneo)"),
-                callback = function() self:openSession(true) end,
+                callback = function() self:openSession() end,
             },
             {
                 text = _("Refresco parcial: fast"),
@@ -90,24 +83,6 @@ function PaperTokens:addToMainMenu(menu_items)
                 end,
                 callback = function()
                     if self.view then self.view:setPartialMode("ui") end
-                end,
-            },
-            {
-                text = _("Color: letra"),
-                checked_func = function()
-                    return self.view and self.view.color_mode == "letter"
-                end,
-                callback = function()
-                    if self.view then self.view:setColorMode("letter") end
-                end,
-            },
-            {
-                text = _("Color: trama"),
-                checked_func = function()
-                    return self.view and self.view.color_mode == "hatch"
-                end,
-                callback = function()
-                    if self.view then self.view:setColorMode("hatch") end
                 end,
             },
         },

@@ -1,97 +1,96 @@
 # PaperTokens — plugin de KOReader (Kindle PW3)
 
-Port del prototipo web a hardware e-ink real. **Objetivo de esta fase:
-validar función, no fidelidad visual** — motor de layout, máquina de estados
-de sesión, modelo de refresco y presupuesto de ghosting. Código de prueba,
-desechable salvo `core/layout.lua`.
+La **sesión de la app web** corriendo en hardware e-ink. Mismo modelo de
+interacción, mismo diseño de carta, mismas reglas: lo que cambia es el
+dispositivo.
 
-Dispositivo: Kindle Paperwhite 3 (PQ94WIF), 1072x1448 @ 300 dpi, jailbreak +
-KOReader, orientación horizontal, dimensiones nativas sin escalar.
+Kindle Paperwhite 3 (PQ94WIF), 1072x1448 @ 300 dpi, jailbreak + KOReader
+v2026.07.1. Orientación **vertical**, como la web (mobile-first).
 
-## Estado
+## Qué hay en pantalla
 
-Hecho y probado en la Mac (sin KOReader):
+Las mismas tres zonas de la web, de arriba a abajo:
 
-- `core/layout.lua` — **módulo puro, portable**. Umbrales en mm (no px),
-  plantillas proporcionales n=1..6, tiers FULL/COMPACT/MINIMAL, orden
-  estable. `luajit tests/run.lua` → 195 checks contra las dimensiones del
-  Kindle horizontal y del panel objetivo (800x480 @ 125 dpi): tiers
-  esperados, sin traslapes, sin salirse de pantalla.
-- `core/session.lua` — máquina de sesión pura. Cada operación devuelve el
-  evento de refresco (`partial` / `zone_full` / `reflow` / `none` /
-  `blocked`): la cantidad jamás dispara reflow (llegar a 0 no elimina la
-  zona), reflow solo al cambiar el set declarado, presupuesto de ghosting
-  por zona con umbral ajustable, modo "layout fijo" que bloquea declarar.
-- `core/model.lua` — TokenDef/TokenState/Profile v1 + perfil Pauper
-  hardcoded con los seis tokens.
-- `config/thresholds.lua` — umbrales de tier en mm, presupuesto de ghosting
-  y ms de pulsación larga. Editable sin recompilar.
-- `assets/` — seis siluetas negras (Eldrazi Spawn, Blood, Map, Human
-  Soldier, Cat, Clue) pre-rasterizadas en la Mac a 224/160/96 px (fuentes
-  SVG en `assets/src/`). El nombre de archivo es el último segmento del
-  `art_key` + tamaño (`creature/cat` → `cat-224.png`).
-- `deploy.sh` — rsync por SSH + reinicio (rutas pendientes de verificar).
+- **Header** — `Reiniciar partida` | círculo `UNTAP ALL` | `Salir`. Los dos
+  botones laterales abren modal de confirmación; el central destapa todo sin
+  preguntar.
+- **Zona activa** — 1 a 4 tipos de token. Cada uno lleva su píldora de
+  contadores con botón de untap propio, la carta, y los orbes `−` / `+` a los
+  lados. La carta **nunca se estira**: conserva la proporción 63x88 de una
+  carta física.
+- **Carrusel** — el catálogo completo abajo, paginado por taps con bloques
+  negros de chevron. Las miniaturas en juego se ven invertidas.
 
-- `main.lua`, `_meta.lua`, `ui/render.lua`, `ui/view.lua` — escritos contra
-  la API **verificada en la instalación real**, ver abajo.
+**Gestos** (toque directo, como la web):
+
+| Acción | Resultado |
+|---|---|
+| tap en la carta | tapea un token (destapado → tapeado) |
+| long-press en la carta | vista expandida: nombre, tipo completo, P/T y texto de reglas. Solo lectura, se cierra con un tap en cualquier parte |
+| orbe `+` | crea un token, entra destapado |
+| orbe `−` | destruye: resta de tapeados primero. Con el último token se vuelve bote de basura, y al llegar a 0 el tipo vuelve al carrusel |
+| botón de la píldora | destapa todos los de ese tipo |
+| tap en una miniatura | pone ese tipo en juego |
+
+Los contadores nunca usan `/` (esa notación es fuerza/resistencia):
+destapados en badge vertical sólido, tapeados en badge apaisado con
+contorno. El badge en 0 no se dibuja. El texto de reglas solo existe en la
+vista expandida.
+
+## El motor de layout
+
+`core/layout.lua` es puro (sin `require` de KOReader, sin I/O) y corre bajo
+Lua pelón. La web elige la disposición que hace las cartas lo más grandes
+posible en su pantalla angosta —n=2 apiladas, n=3 dos arriba y una abajo,
+n=4 en 2x2— y **esa regla es lo que se porta**, no las coordenadas: aquí se
+aplica al panel real. Con la proporción de un teléfono reproduce exactamente
+las plantillas de la web (hay un test que lo verifica); en el Kindle, que es
+relativamente más ancho, n=2 sale en dos columnas en vez de desperdiciar el
+ancho.
+
+Las medidas de los controles van en **milímetros** (`config/thresholds.lua`),
+no en píxeles: un orbe de 130 px es cómodo a 300 dpi e inusable a 125.
+
+## Ver el layout sin el Kindle
+
+```
+cd papertokens.koplugin
+luajit tests/run.lua       # 114 checks: layout, fidelidad con la web, sesión
+luajit tests/report.lua    # tamaño de carta real por dispositivo
+luajit tests/preview.lua > /tmp/preview.svg   # cómo se ve la pantalla
+```
+
+`preview.lua` usa los mismos `core/layout.lua` y `core/metrics.lua` que el
+render del dispositivo, así que la geometría que muestra es la real.
 
 ## API verificada (KOReader v2026.07.1, PW3)
 
-Consultada en el device antes de escribir una línea que dependiera de ella:
+Consultada en la instalación real antes de escribir código que dependiera
+de ella:
 
 | Punto | Hallazgo |
 |---|---|
 | `UIManager:setDirty` | `(widget, refreshtype, refreshregion, refreshdither)`; modos `full`, `flashpartial`, `flashui`, `partial`, `ui`, `fast`, `a2`. `refreshregion` es un `Geom` |
-| DPI | `Screen:getDPI()` devuelve `display_dpi` = **300 físico** para PW3 (solo lo altera `EMULATE_READER_DPI`) |
-| Tallas de fuente | `Font:getFace(name, size)` escala su argumento con `Screen:scaleBySize()`. `ui/render.lua` **invierte** esa escala para pedir píxeles físicos reales |
-| Rotación | `Screen:setRotationMode(Screen.DEVICE_ROTATED_CLOCKWISE)` (=1) |
-| Táctil rotado | `GestureDetector:adjustGesCoordinate` **ya traduce** las coordenadas en landscape: no hay que corregirlas a mano |
-| Pulsación larga | `HOLD_INTERVAL_MS = 500` **global** (setting `ges_hold_interval_ms`), no los 600 ms del spec — el gesto `hold` dispara con ese valor |
-| Zonas táctiles | `InputContainer:registerTouchZones{...}` con `screen_zone` en ratios, resueltas contra `Screen:getWidth/getHeight` **al registrar** ⇒ registrar después de rotar |
-| Plugin | `_meta.lua` con `fullname`/`description`; `WidgetContainer:extend`, `self.ui.menu:registerToMainMenu(self)`, `addToMainMenu(menu_items)` con `sorting_hint` |
+| DPI | `Screen:getDPI()` devuelve `display_dpi` = **300 físico** para PW3 |
+| Tallas de fuente | `Font:getFace(name, size)` escala su argumento con `Screen:scaleBySize()`; `ui/render.lua` **invierte** esa escala para pedir píxeles reales |
+| Táctil rotado | `GestureDetector:adjustGesCoordinate` ya traduce las coordenadas: no hay que corregirlas a mano |
+| Pulsación larga | `HOLD_INTERVAL_MS = 500` **global** (setting `ges_hold_interval_ms`) |
+| Zonas táctiles | `registerTouchZones` fija sus ratios al registrar ⇒ aquí se registra una sola zona de pantalla completa y el hit-test se hace a mano, para que el reflow no obligue a re-registrar |
+| Plugin | `_meta.lua` con `fullname`/`description`; `WidgetContainer:extend` + `registerToMainMenu` + `addToMainMenu` con `sorting_hint` |
 | PNG | `RenderImage:renderImageFile(path, want_frames, w, h)` → BlitBuffer |
-| Dibujo | `bb:paintRect/paintBorder/invertRect/blitFrom`; `RenderText:renderUtf8Text/sizeUtf8Text` |
+| Dibujo | `bb:paintRect/paintBorder/invertRect/blitFrom`; `RenderText:renderUtf8Text/sizeUtf8Text`. Círculos y rectángulos redondeados rellenos se dibujan por scanlines, sin depender de helpers no verificados |
 | Ruta de plugins | `koreader/plugins/` en la raíz de la unidad (`/mnt/us/koreader/plugins`) |
-| Ciclo de vida | `Widget:new` llama `_init()` y luego `init()` |
 
-## Mapeo de botones (3 zonas táctiles fijas)
+## Modelo de refresco
 
-Franja inferior dividida en tres, nada de touch sobre el elemento a
-modificar. El selector de tipos se opera con **los mismos tres botones**,
-porque el hardware final no tiene más:
+| Evento | Modo | Alcance |
+|---|---|---|
+| cambio de cantidad o de tapeado | `fast` (o `ui`, alternable en el menú) | rect de la zona |
+| entra o sale un tipo | `full` | pantalla completa |
+| presupuesto de ghosting agotado | `full` | rect de la zona |
 
-| Botón | Corta (juego) | Larga (juego) | En el selector |
-|---|---|---|---|
-| BTN_A | ciclar token activo | abrir selector de tipos | siguiente |
-| BTN_B | +1 cantidad | tapear uno (untapped→tapped) | marcar/desmarcar |
-| BTN_C | −1 cantidad (tapped primero) | destapar uno | jugar (cierra ⇒ reflow) |
-
-## Dato de calibración (`luajit tests/report.lua`)
-
-Con las franjas de botones (12 mm) y estado (5 mm) descontadas:
-
-```
-Kindle PW3 landscape — contenido 122.6 x 73.7 mm
-  n=1..4  todas las zonas FULL (mínima 61x37 mm)
-  n=5     principal 88x74 FULL | tira 34x18 mm MINIMAL
-  n=6     principal 88x74 FULL | tira 34x15 mm MINIMAL
-
-Panel objetivo — contenido 162.6 x 80.5 mm
-  n=5     principal 117x80 FULL | tira 46x20 mm COMPACT
-```
-
-**Hallazgo:** en el Kindle la tira lateral cae a MINIMAL por 2 mm de alto
-(18 vs el umbral 20). El panel objetivo sí llega a COMPACT. Decisión abierta
-para calibrar contra hardware: bajar `compact.h_mm`, subir
-`SIDE_STRIP_FRACTION`, o aceptar que en el caso más restrictivo la tira solo
-muestre cantidades.
-
-## Correr los tests
-
-```
-cd papertokens.koplugin && luajit tests/run.lua
-cd papertokens.koplugin && luajit tests/report.lua
-```
+Cada refresco se loguea a `koreader/crash.log` como
+`PaperTokens refresh: <acción> <modo> <ms>`.
 
 ## Deploy
 
@@ -101,8 +100,13 @@ cd papertokens.koplugin && luajit tests/report.lua
 ```
 
 En modo USB mass storage KOReader no está corriendo: tras copiar hay que
-expulsar la unidad (`diskutil eject /Volumes/Kindle`) y abrir KOReader.
+expulsar la unidad (`diskutil eject /Volumes/Kindle`) y abrir KOReader. El
+plugin aparece en **☰ → herramientas → PaperTokens → Nueva sesión**.
 
-El plugin aparece en **☰ → herramientas → PaperTokens**. Los errores de Lua
-van a `koreader/crash.log`, junto con las latencias de refresco que loguea
-la instrumentación (`PaperTokens refresh: <acción> <modo> <ms>`).
+## Fuera de alcance en esta fase
+
+Sin red: el catálogo son los seis tokens de Pauper hardcoded en
+`core/model.lua`. Crear un deck pegando una decklist vive en la app web; los
+campos de `TokenDef` ya replican el payload autosuficiente que produce
+`serializeDeck` allá, para que un perfil pueda viajar de la web al
+dispositivo sin depender de Scryfall en la mesa.
