@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none" stroke="#000" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+  <!-- tapa abombada -->
+  <path d="M40 92 Q40 48 100 48 Q160 48 160 92" />
+  <path d="M40 92 L160 92" />
+  <!-- caja -->
+  <path d="M44 92 L44 156 L156 156 L156 92" />
+  <!-- duelas -->
+  <path d="M76 48 L76 92 M124 50 L124 92" stroke-width="5" />
+  <path d="M76 92 L76 156 M124 92 L124 156" stroke-width="5" />
+  <!-- candado -->
+  <rect x="86" y="96" width="28" height="26" rx="5" />
+  <path d="M92 96 L92 88 Q100 80 108 88 L108 96" stroke-width="5" />
+  <circle cx="100" cy="108" r="3" fill="#000" stroke="none" />
+  <!-- monedas asomando -->
+  <circle cx="58" cy="86" r="7" stroke-width="5" />
+  <circle cx="146" cy="84" r="7" stroke-width="5" />
+  <!-- destello -->
+  <path d="M170 40 L174 30 L178 40 L188 44 L178 48 L174 58 L170 48 L160 44 Z" stroke-width="5" />
+</svg>

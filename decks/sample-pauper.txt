@@ -1,0 +1,8 @@
+// Archivo de muestra: sustitúyelo (y agrega más .txt en esta carpeta) con
+// decklists reales del meta de Pauper, y corre:
+//   node scripts/common-pauper-tokens.mjs decks/*.txt
+4 Kuldotha Rebirth
+4 Battle Screech
+4 Lingering Souls
+4 Thraben Inspector
+4 Nested Shambler

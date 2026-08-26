@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none" stroke="#000" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+  <!-- silueta fantasma -->
+  <path d="M56 172 L56 96 Q56 44 100 44 Q144 44 144 96 L144 172 L126 156 L112 172 L100 156 L88 172 L74 156 Z" />
+  <!-- ojos -->
+  <ellipse cx="84" cy="96" rx="7" ry="11" fill="#000" stroke="none" />
+  <ellipse cx="116" cy="96" rx="7" ry="11" fill="#000" stroke="none" />
+  <!-- boca -->
+  <ellipse cx="100" cy="126" rx="8" ry="11" />
+  <!-- destello -->
+  <path d="M158 52 L164 40 L170 52 L182 58 L170 64 L164 76 L158 64 L146 58 Z" stroke-width="5" />
+</svg>

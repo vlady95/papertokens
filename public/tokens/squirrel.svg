@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none" stroke="#000" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+  <!-- cola grande en S detrás -->
+  <path d="M84 166 Q28 158 32 102 Q36 54 78 52 Q108 52 104 84 Q100 108 76 106 Q62 104 64 90" />
+  <!-- cuerpo sentado -->
+  <path d="M108 168 Q96 128 126 104 Q150 88 162 108 Q172 130 162 150 Q152 166 132 170 Z" />
+  <!-- cabeza -->
+  <circle cx="146" cy="76" r="20" />
+  <!-- oreja -->
+  <path d="M136 58 L136 42 L150 54" />
+  <!-- ojo y hocico -->
+  <circle cx="152" cy="72" r="4" fill="#000" stroke="none" />
+  <path d="M164 82 Q160 88 154 86" stroke-width="5" />
+  <!-- patas con bellota -->
+  <path d="M138 116 Q130 124 136 132" stroke-width="5" />
+  <ellipse cx="144" cy="140" rx="9" ry="11" stroke-width="5" />
+  <path d="M136 133 Q144 127 152 133" stroke-width="5" />
+  <!-- pie -->
+  <path d="M112 170 L134 170" stroke-width="5" />
+</svg>

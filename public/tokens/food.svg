@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none" stroke="#000" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+  <!-- pay en su molde -->
+  <path d="M36 116 L164 116 L156 148 Q100 158 44 148 Z" />
+  <path d="M36 116 Q100 96 164 116" />
+  <!-- ondas de la costra -->
+  <path d="M48 112 Q56 104 64 111 Q72 104 80 110 Q88 103 96 109 Q104 103 112 109 Q120 103 128 110 Q136 104 144 111 Q150 106 154 112" stroke-width="5" />
+  <!-- corte -->
+  <path d="M96 132 L104 132" stroke-width="5" />
+  <!-- vapor -->
+  <path d="M78 84 Q72 72 80 62 Q86 54 82 44" stroke-width="5" />
+  <path d="M104 84 Q98 72 106 62 Q112 54 108 44" stroke-width="5" />
+  <path d="M128 86 Q124 76 130 68" stroke-width="5" />
+</svg>

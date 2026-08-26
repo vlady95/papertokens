@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none" stroke="#000" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Ejemplo de arte de línea. Sustituir por ilustraciones reales. -->
+  <!-- orejas -->
+  <path d="M38 92 L8 58 L52 62" />
+  <path d="M162 92 L192 58 L148 62" />
+  <!-- cabeza -->
+  <path d="M52 62 Q100 30 148 62 Q170 92 158 130 Q140 168 100 172 Q60 168 42 130 Q30 92 52 62 Z" />
+  <!-- cejas -->
+  <path d="M62 92 L88 100" />
+  <path d="M138 92 L112 100" />
+  <!-- ojos -->
+  <circle cx="78" cy="112" r="7" fill="#000" stroke="none" />
+  <circle cx="122" cy="112" r="7" fill="#000" stroke="none" />
+  <!-- nariz -->
+  <path d="M100 118 L94 134 L106 134 Z" />
+  <!-- sonrisa con colmillos -->
+  <path d="M70 144 Q100 160 130 144" />
+  <path d="M80 148 L84 138" />
+  <path d="M120 148 L116 138" />
+</svg>

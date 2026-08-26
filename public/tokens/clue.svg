@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none" stroke="#000" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+  <!-- lupa -->
+  <circle cx="84" cy="84" r="46" />
+  <circle cx="84" cy="84" r="32" />
+  <!-- brillo -->
+  <path d="M66 72 Q74 62 86 60" stroke-width="5" />
+  <!-- mango -->
+  <path d="M118 118 L156 156" stroke-width="14" />
+  <path d="M124 124 L162 162" stroke-width="6" />
+  <!-- huella dentro -->
+  <path d="M78 92 Q84 98 92 92" stroke-width="4" />
+  <path d="M74 82 Q84 90 96 82" stroke-width="4" />
+</svg>

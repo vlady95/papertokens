@@ -1,0 +1,884 @@
+/* PaperTokens — restricciones e-ink:
+   - Exactamente 4 grises. Nada de color, gradientes ni sombras.
+   - Cero transiciones y cero animación. Único efecto permitido: la inversión
+     breve al cambiar de vista (.eink-flash, sin transition).
+   - Solo tap y long-press; targets mínimos de 48px. Sin swipe, drag ni
+     scroll horizontal.
+   - El layout solo se reacomoda cuando cambia el conjunto de tipos de token
+     en juego, nunca cuando cambia una cantidad.
+   - Mobile primero, pantalla angosta. */
+
+:root {
+  --paper: #ffffff;
+  --gray-light: #d9d9d9;
+  --gray-mid: #7a7a7a;
+  --ink: #000000;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 17px;
+  line-height: 1.35;
+}
+
+.app {
+  max-width: 520px;
+  min-height: 100%;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* Simulación del refresco e-ink: inversión instantánea, sin transition. */
+.eink-flash {
+  filter: invert(1);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 10px;
+  margin-bottom: 16px;
+}
+
+.topbar h1 {
+  font-size: 20px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+button {
+  font-family: inherit;
+  font-size: 17px;
+  min-height: 48px;
+  min-width: 48px;
+  padding: 0 16px;
+  border: 2px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+button.primary {
+  background: var(--ink);
+  color: var(--paper);
+  width: 100%;
+  font-size: 18px;
+}
+
+button:disabled {
+  border-color: var(--gray-mid);
+  color: var(--gray-mid);
+  background: var(--paper);
+  cursor: default;
+}
+
+textarea:focus,
+button:focus,
+input:focus {
+  outline: 3px solid var(--ink);
+  outline-offset: -1px;
+}
+
+.hint {
+  color: var(--gray-mid);
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.stats {
+  color: var(--gray-mid);
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.status {
+  border: 2px solid var(--gray-mid);
+  padding: 12px;
+  margin-top: 12px;
+  font-size: 15px;
+}
+
+.status.error {
+  border-color: var(--ink);
+  background: var(--gray-light);
+}
+
+.empty {
+  color: var(--gray-mid);
+  padding: 24px 0;
+  text-align: center;
+}
+
+.section {
+  margin: 16px 0;
+}
+
+.section h2 {
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 1px solid var(--ink);
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+}
+
+.section ul {
+  list-style: none;
+}
+
+.section li {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--gray-light);
+  font-size: 15px;
+}
+
+.section .why {
+  display: block;
+  color: var(--gray-mid);
+  font-size: 13px;
+}
+
+/* ---- Inicio ---- */
+
+.slots {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.slot {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  text-align: left;
+  min-height: 64px;
+  width: 100%;
+  padding: 8px 16px;
+}
+
+.slot-name {
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.slot-sub {
+  font-size: 13px;
+  color: var(--gray-mid);
+}
+
+.slot.vacant {
+  border: 2px solid var(--gray-light);
+  min-height: 64px;
+}
+
+.home-exits {
+  display: flex;
+  gap: 10px;
+}
+
+.home-exits button {
+  flex: 1;
+}
+
+.empty-home {
+  padding-top: 24px;
+}
+
+/* ---- Alta: pegar ---- */
+
+.paste textarea {
+  width: 100%;
+  min-height: 40vh;
+  border: 2px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Courier New', monospace;
+  font-size: 15px;
+  padding: 10px;
+  resize: vertical;
+  margin-bottom: 12px;
+}
+
+.paste textarea::placeholder {
+  color: var(--gray-mid);
+}
+
+/* ---- Alta: resultado ---- */
+
+.deck-name {
+  width: 100%;
+  min-height: 48px;
+  border: 2px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 18px;
+  padding: 0 12px;
+  margin-bottom: 12px;
+}
+
+.deck-name::placeholder {
+  color: var(--gray-mid);
+}
+
+.pick-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.pick {
+  border: 2.5px solid var(--gray-mid);
+  border-radius: 14px;
+  min-height: 108px;
+  padding: 8px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+  font-family: -apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+.pick.marked {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.pick-square {
+  width: 48px;
+  height: 48px;
+  border: 2.5px solid currentColor;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.pick-label {
+  font-size: 12px;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.save-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 16px 0;
+}
+
+/* ---- Sesión ---- */
+
+.session {
+  position: fixed;
+  inset: 0;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 520px;
+  background: var(--paper);
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.session-header {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-bottom: 2px solid var(--ink);
+}
+
+.header-btn {
+  min-height: 48px;
+  max-width: 110px;
+  border: 2.5px solid var(--ink);
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.15;
+  padding: 4px 10px;
+  font-family: -apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+.untap-all {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  border: 3px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+  font-family: -apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+.untap-icon {
+  font-size: 28px;
+}
+
+.untap-word {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+/* Modal de confirmación (reiniciar / salir). Fondo sólido: nada de
+   transparencias, que mezclarían grises fuera de la paleta. */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: var(--gray-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.modal {
+  width: 100%;
+  max-width: 340px;
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: 18px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-family: -apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+.modal-text {
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.modal button {
+  border-radius: 12px;
+}
+
+/* Zona activa: el layout depende solo del conjunto de tipos en juego. */
+
+.active-zone {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  gap: 10px;
+  padding: 10px;
+}
+
+.active-zone.n0 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.active-zone.n1 {
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+}
+
+.active-zone.n2 {
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+.active-zone.n3 {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+.active-zone.n3 .ficha:nth-child(3) {
+  grid-column: 1 / -1;
+}
+
+.active-zone.n4 {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+/* Ficha, según la referencia de diseño: marco redondeado con barra de
+   título, caja de arte y barra de tipo; contadores en una píldora arriba;
+   − y + como círculos negros montados sobre los bordes del marco, en
+   posiciones fijas, para que el refresco parcial toque solo el dígito.
+   Las cartas usan sans bold, como el mockup. */
+
+.ficha {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-height: 0;
+  min-width: 0;
+  font-family: -apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+.pill {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  padding: 4px 6px;
+  background: var(--paper);
+}
+
+/* Sin barra /: el estado lo dice la geometría del badge, como la carta
+   física — vertical sólido = destapado, apaisado con contorno = tapeado.
+   Los dígitos siempre de pie. */
+.badge {
+  min-width: 32px;
+  height: 40px;
+  padding: 0 6px;
+  border-radius: 9px;
+  background: var(--ink);
+  color: var(--paper);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 19px;
+}
+
+.badge.is-tapped {
+  min-width: 44px;
+  height: 30px;
+  background: var(--paper);
+  color: var(--ink);
+  border: 3px solid var(--ink);
+}
+
+.pill-untap {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 50%;
+  border: none;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 24px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.frame-row {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  container-type: size;
+}
+
+/* La caja de la carta guarda siempre la proporción de una carta física
+   (63×88): nunca se estira. Toma el mayor tamaño que quepa en la celda
+   (descontando los orbes laterales), gobernado por el eje que limite. */
+.card-box {
+  position: relative;
+  width: min(calc(100cqw - 40px), calc(100cqh * 63 / 88));
+  aspect-ratio: 63 / 88;
+  display: flex;
+  /* El tamaño lo fija la proporción, nunca el contenido (títulos largos
+     estiraban la carta). */
+  contain: size;
+}
+
+.card-frame {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  border: 3px solid var(--ink);
+  border-radius: 18px;
+  background: var(--paper);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.orb {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 50%;
+  border: none;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 26px;
+  font-weight: 700;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.orb-minus {
+  left: -20px;
+}
+
+.orb-plus {
+  right: -20px;
+}
+
+.title-bar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: 2.5px solid var(--ink);
+  border-radius: 10px;
+  padding: 5px 10px;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.title-name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.title-color {
+  flex: 0 0 auto;
+}
+
+/* El wrap no recorta: en él vive el badge de P/T que se monta sobre el
+   borde. El recorte de las iniciales queda dentro, en .art-box. */
+.art-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.art-box {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  border: 2.5px solid var(--ink);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  container-type: size;
+}
+
+/* Escala con la caja de arte real, no con la pantalla. */
+.art-ph {
+  font-weight: 700;
+  font-size: 45cqmin;
+  color: var(--gray-light);
+}
+
+/* Ilustraciones de public/tokens/. El grayscale es red de seguridad de la
+   paleta: el arte debe venir ya en blanco y negro. */
+.token-art {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 5%;
+  filter: grayscale(1);
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+
+.mini-square .token-art,
+.pick-square .token-art {
+  padding: 8%;
+}
+
+/* Montado sobre el borde inferior del arte, como en la referencia. */
+.pt-badge {
+  position: absolute;
+  right: 8px;
+  bottom: 0;
+  transform: translateY(55%);
+  z-index: 1;
+  background: var(--ink);
+  color: var(--paper);
+  border: 3px solid var(--paper);
+  border-radius: 9px;
+  padding: 2px 10px;
+  font-weight: 700;
+  font-size: 17px;
+}
+
+.type-bar {
+  flex: 0 0 auto;
+  border: 2.5px solid var(--ink);
+  border-radius: 10px;
+  padding: 5px 10px;
+  font-weight: 600;
+  font-size: 12.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mini-rules {
+  flex: 0 0 auto;
+  border: 2.5px solid var(--ink);
+  border-radius: 10px;
+  padding: 5px 8px;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Celdas de media anchura (3 y 4 tipos): mismo ajuste, menos margen de
+   orbes. La tercera carta del modo de 3 mide igual que las de arriba. */
+.active-zone.n3 .ficha:nth-child(-n + 2) .card-box,
+.active-zone.n4 .card-box {
+  width: min(calc(100cqw - 36px), calc(100cqh * 63 / 88));
+}
+
+.active-zone.n3 .ficha:nth-child(3) .card-box {
+  width: min(calc(50cqw - 41px), calc(100cqh * 63 / 88));
+}
+
+.active-zone.n3 .orb,
+.active-zone.n4 .orb {
+  width: 48px;
+  height: 48px;
+}
+
+.active-zone.n3 .ficha:nth-child(-n + 2) .orb-minus,
+.active-zone.n3 .ficha:nth-child(3) .orb-minus,
+.active-zone.n4 .orb-minus {
+  left: -18px;
+}
+
+.active-zone.n3 .ficha:nth-child(-n + 2) .orb-plus,
+.active-zone.n3 .ficha:nth-child(3) .orb-plus,
+.active-zone.n4 .orb-plus {
+  right: -18px;
+}
+
+.active-zone.n3 .mini-rules,
+.active-zone.n4 .mini-rules {
+  font-size: 8px;
+  -webkit-line-clamp: 3;
+  padding: 4px 6px;
+}
+
+.active-zone.n3 .title-bar,
+.active-zone.n4 .title-bar {
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+.active-zone.n3 .type-bar,
+.active-zone.n4 .type-bar {
+  font-size: 10px;
+  padding: 4px 8px;
+}
+
+.active-zone.n3 .pt-badge,
+.active-zone.n4 .pt-badge {
+  font-size: 14px;
+  padding: 1px 8px;
+}
+
+.active-zone.n3 .badge,
+.active-zone.n4 .badge {
+  min-width: 26px;
+  height: 32px;
+  font-size: 16px;
+}
+
+.active-zone.n3 .badge.is-tapped,
+.active-zone.n4 .badge.is-tapped {
+  min-width: 36px;
+  height: 24px;
+}
+
+.active-zone.n3 .pill,
+.active-zone.n4 .pill {
+  gap: 5px;
+  padding: 3px 5px;
+  border-width: 2.5px;
+}
+
+/* Carrusel: banda fija abajo. Paginación por taps, nunca scroll. */
+
+.carousel {
+  flex: 0 0 auto;
+  height: 96px;
+  border-top: 2px solid var(--ink);
+  display: flex;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+.chevron {
+  flex: 0 0 48px;
+  width: 48px;
+  min-width: 48px;
+  height: 100%;
+  border: none;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 26px;
+  font-weight: bold;
+  padding: 0;
+}
+
+.carousel-items {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  gap: 4px;
+  padding: 4px;
+  min-width: 0;
+}
+
+.mini {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 48px;
+  max-width: 76px;
+  cursor: pointer;
+  font-family: -apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+.mini-square {
+  width: 48px;
+  height: 48px;
+  border: 2.5px solid var(--ink);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.mini.in-play .mini-square {
+  background: var(--gray-light);
+}
+
+.mini-label {
+  font-size: 10px;
+  max-width: 72px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ---- Vista expandida: solo lectura, tap en cualquier parte cierra ---- */
+
+.expanded {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  background: var(--paper);
+  padding: 24px 20px;
+  overflow-y: auto;
+  max-width: 520px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  font-family: -apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+.expanded .card-frame {
+  flex: 1;
+  cursor: default;
+}
+
+.expanded .title-bar {
+  font-size: 18px;
+}
+
+.expanded .art-box {
+  min-height: 30vh;
+}
+
+.expanded .type-bar {
+  font-size: 15px;
+}
+
+.rules-box {
+  flex: 0 0 auto;
+  border: 2.5px solid var(--ink);
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.rules-box p {
+  margin-bottom: 8px;
+}
+
+.rules-box p:last-child {
+  margin-bottom: 0;
+}
+
+.expanded-hint {
+  margin-top: 16px;
+  color: var(--gray-mid);
+  font-size: 13px;
+  text-align: center;
+}

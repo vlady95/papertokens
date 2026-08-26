@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none" stroke="#000" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+  <!-- llama con lenguas -->
+  <path d="M100 176 Q56 168 52 128 Q50 104 68 88 Q66 104 80 108 Q74 76 100 44 Q96 76 116 84 Q118 62 136 52 Q128 84 146 100 Q158 116 150 136 Q142 168 100 176 Z" />
+  <!-- llama interior -->
+  <path d="M100 156 Q80 150 80 132 Q80 120 92 110 Q90 126 100 128 Q98 110 112 102 Q110 122 122 128 Q124 142 114 150 Q108 156 100 156 Z" />
+  <!-- ojos -->
+  <circle cx="92" cy="140" r="4" fill="#000" stroke="none" />
+  <circle cx="110" cy="140" r="4" fill="#000" stroke="none" />
+  <!-- chispas -->
+  <path d="M46 62 L52 50" stroke-width="5" />
+  <path d="M158 66 L152 54" stroke-width="5" />
+</svg>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Ícono de la app: carta con esquinas redondeadas sobre fondo blanco. -->
+  <rect width="512" height="512" fill="#ffffff" />
+  <rect x="116" y="60" width="280" height="392" rx="36" fill="none" stroke="#000" stroke-width="22" />
+  <rect x="146" y="94" width="220" height="64" rx="18" fill="none" stroke="#000" stroke-width="14" />
+  <rect x="146" y="182" width="220" height="180" rx="18" fill="none" stroke="#000" stroke-width="14" />
+  <text x="256" y="298" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="120" font-weight="bold" fill="#000">PT</text>
+  <rect x="146" y="386" width="220" height="40" rx="14" fill="#000" />
+</svg>

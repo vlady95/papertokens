@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none" stroke="#000" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+  <!-- casco -->
+  <path d="M64 84 Q60 40 100 38 Q140 40 136 84" />
+  <path d="M60 84 L140 84" />
+  <path d="M100 46 L100 30 L112 26" stroke-width="5" />
+  <!-- rostro -->
+  <path d="M68 84 Q68 122 100 124 Q132 122 132 84" />
+  <!-- protector nasal -->
+  <path d="M100 84 L100 102" stroke-width="5" />
+  <!-- ojos y boca -->
+  <circle cx="86" cy="96" r="4" fill="#000" stroke="none" />
+  <circle cx="114" cy="96" r="4" fill="#000" stroke="none" />
+  <path d="M90 112 L110 112" stroke-width="5" />
+  <!-- hombros -->
+  <path d="M52 176 Q56 140 100 138 Q144 140 148 176" />
+  <!-- espada al costado -->
+  <path d="M164 66 L164 130" />
+  <path d="M152 126 L176 126" stroke-width="5" />
+  <path d="M164 130 L164 146" stroke-width="8" />
+  <!-- escudo pequeño al otro lado -->
+  <path d="M24 96 L48 96 L48 118 Q36 132 24 118 Z" stroke-width="5" />
+</svg>

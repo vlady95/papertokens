@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none" stroke="#000" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+  <!-- pergamino desplegado -->
+  <path d="M38 52 L100 42 L162 52 L166 148 L100 158 L34 148 Z" />
+  <!-- dobleces -->
+  <path d="M78 46 L76 152" stroke-width="4" />
+  <path d="M124 46 L126 152" stroke-width="4" />
+  <!-- montañas -->
+  <path d="M50 84 L62 66 L74 84" stroke-width="5" />
+  <path d="M62 84 L72 72 L82 84" stroke-width="5" />
+  <!-- ruta punteada hacia la X -->
+  <path d="M52 132 Q90 128 104 108 Q118 90 138 84" stroke-width="5" stroke-dasharray="1 12" />
+  <!-- la X del tesoro -->
+  <path d="M136 74 L152 90 M152 74 L136 90" />
+  <!-- rosa de los vientos -->
+  <circle cx="100" cy="132" r="10" stroke-width="5" />
+  <path d="M100 118 L100 146 M86 132 L114 132" stroke-width="4" />
+</svg>

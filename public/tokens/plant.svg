@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none" stroke="#000" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+  <!-- montículo de tierra -->
+  <path d="M36 160 Q100 138 164 160 L156 176 L44 176 Z" />
+  <!-- tallo -->
+  <path d="M100 152 L100 92" />
+  <!-- hojas -->
+  <path d="M100 124 Q64 124 56 92 Q92 88 100 116 Z" />
+  <path d="M100 116 Q136 116 144 84 Q108 80 100 108 Z" />
+  <!-- brote -->
+  <path d="M100 92 Q84 84 86 64 Q102 66 104 82 Q106 66 122 62 Q126 82 108 90 Q104 92 100 92 Z" />
+  <!-- piedritas -->
+  <circle cx="64" cy="168" r="3" fill="#000" stroke="none" />
+  <circle cx="138" cy="168" r="3" fill="#000" stroke="none" />
+</svg>

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none" stroke="#000" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+  <!-- cuerpo -->
+  <path d="M60 120 Q60 76 104 76 Q146 76 150 112 Q152 146 116 154 Q76 160 60 132 Z" />
+  <!-- cabeza -->
+  <circle cx="132" cy="62" r="22" />
+  <path d="M118 78 Q112 84 108 78" />
+  <!-- pico -->
+  <path d="M152 58 L176 64 L152 72" />
+  <!-- ojo -->
+  <circle cx="136" cy="58" r="4" fill="#000" stroke="none" />
+  <!-- ala -->
+  <path d="M76 108 Q100 96 124 108 Q104 124 76 120 Z" />
+  <!-- cola -->
+  <path d="M62 128 L28 140" />
+  <path d="M64 138 L36 154" />
+  <!-- patas -->
+  <path d="M100 156 L100 176 M92 176 L108 176" />
+  <path d="M126 152 L128 172 M120 172 L136 172" />
+</svg>
