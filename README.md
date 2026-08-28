@@ -1,118 +1,100 @@
 # PaperTokens
 
 Registro de tokens de Magic: The Gathering para jugar con cartas físicas en
-la mesa. El destino final es un dispositivo e-ink (Kindle Paperwhite); por
-ahora todo vive en esta webapp, que simula esas condiciones.
+la mesa, en un dispositivo e-ink.
 
-## Estado actual (v2)
+El proyecto son dos piezas:
 
-Sesión completa con persistencia:
+- **La webapp** (esta carpeta) — un **generador**. Se pega una decklist, se
+  resuelve contra Scryfall, se revisa, se nombra el mazo y se descarga un
+  `.txt`. Nada más: aquí no se juega.
+- **El plugin de KOReader** (`koreader/`) — donde se juega. Lee esos `.txt`
+  desde una carpeta del Kindle, sin red.
 
-- **Inicio** — cuatro ranuras por uso reciente (una sesión cuenta como "usada"
-  solo si pasa de diez minutos), más biblioteca y crear deck.
-- **Alta** — pegar decklist → analizar con Scryfall → pantalla de resultado
-  con nombre, rejilla de tokens para marcar, y los huecos a la vista (cartas
-  no encontradas, líneas ignoradas, cartas que mencionan crear tokens sin
-  entrada en `all_parts`). La marca es *solo para hoy*: filtra el carrusel de
-  la sesión; el deck guarda el catálogo completo. "Guardar y jugar" o
-  "Guardar y salir".
-- **Sesión** — header fijo con tres controles: "Reiniciar partida" (modal de
-  confirmación; elimina todos los tokens en juego), el círculo de untap-all
-  al centro (tap simple, sin confirmación — sigue siendo el dato a medir), y
-  "Salir" (modal de confirmación; la sesión no se guarda). Zona activa
-  (1 tipo = carta grande centrada; 2 = apilados; 3 = dos arriba y uno abajo
-  del mismo tamaño; 4 = rejilla; nunca más de cuatro) donde las cartas
-  guardan siempre la proporción 63×88 de una carta física — nunca se
-  estiran. Carrusel fijo abajo con el catálogo del día, paginado por taps
-  con bloques negros de chevron (sin scroll horizontal, deliberadamente).
-  El texto de reglas solo existe en la vista expandida (long-press); la
-  ficha mini nunca lo muestra.
-- **Ficha** (según la referencia de diseño) — marco redondeado con barra de
-  título (nombre + letra de color), caja de arte placeholder, barra de tipo y
-  badge de fuerza/resistencia montado sobre el borde del arte. Encima, una
-  píldora con los contadores del tipo y su botón de untap propio; el badge en
-  cero no se dibuja. Tap en la carta tapea un token; `+` (círculo derecho,
-  sobre el borde) crea; `−` (izquierdo) destruye restando primero de
-  tapeados, y con el último token se vuelve bote de basura. Los contadores
-  nunca usan `/` (reservada para fuerza/resistencia): destapado es un badge
-  vertical sólido, tapeado uno apaisado con contorno, como se gira la carta.
-  En cero y cero, el tipo vuelve al carrusel. El untap-all global sigue en el
-  header.
-- **Vista expandida** — long-press sobre una ficha: nombre, tipo, P/T y texto
-  de reglas. Solo lectura; un tap en cualquier parte la cierra. El long-press
-  no hace ninguna otra cosa en el producto.
-- La sesión es efímera: vive en memoria; salir o recargar la descarta sin
-  recuperación (decisión provisional del prototipo). Solo persiste la fecha
-  de último uso, escrita al cumplirse los diez minutos.
+El archivo se copia a mano de la Mac al Kindle. No hay backend, ni cuentas,
+ni sincronización, ni persistencia en el navegador.
 
-Decisiones registradas: token no previsto en el catálogo queda fuera de
-alcance en v2; biblioteca de solo lectura; sin anclaje de ranuras.
+## Flujo de la webapp
 
-## Arte de tokens
+1. Pegar la decklist en el textarea. Botón **Analizar**.
+2. Se resuelve contra Scryfall (lotes de 75, dedupe por `oracle_id`).
+3. Pantalla de **revisión**: los tokens encontrados con su clave de icono,
+   más las cartas que Scryfall no halló y las líneas que el parser ignoró.
+   Los huecos se muestran, no se esconden. Es una revisión, **no una
+   selección**: el archivo exporta todos los tokens; qué entra en juego se
+   elige en el Kindle, en la mesa.
+4. Campo para el nombre del mazo.
+5. Botón para descargar el `.txt`.
 
-Las ilustraciones se cargan por convención de archivos, sin código por
-imagen: suelta en `public/tokens/` un archivo llamado
+## El archivo
 
-- `<slug-del-nombre>.png` o `.svg` — p. ej. `goblin.svg`, `eldrazi-spawn.png`
-- o `<oracle_id>.png` / `.svg` para apuntar a un token exacto (gana sobre el
-  slug; útil cuando dos tokens comparten nombre)
-
-y aparecerá en la ficha, la expandida, el carrusel y la rejilla del alta. Si
-no hay archivo, la interfaz cae al placeholder de letras. El arte debe ser
-línea en blanco y negro (el CSS fuerza grayscale como red de seguridad).
-`public/tokens/goblin.svg` es un ejemplo a sustituir.
-
-Para saber qué ilustraciones producir primero, mete decklists del meta en
-`decks/` y corre:
+Autosuficiente: el Kindle no tiene red y el plugin no sabe nada de Magic,
+solo pinta lo que el archivo le dice.
 
 ```
-node scripts/common-pauper-tokens.mjs decks/*.txt
+PAPERTOKENS 1
+# …comentarios que documentan el propio formato…
+
+deck-id 5a8187f84690b6f8
+deck-name Jund Wildfire
+
+token
+name Eldrazi Spawn
+oracle-id 3aaf906a-e749-4e86-ac79-97650b92f271
+type Token Creature — Eldrazi Spawn
+pt 0/1
+colors
+icon eldrazi-spawn
+rules Sacrifice this creature: Add {C}.
 ```
 
-Imprime los tokens ordenados por cuántos decks los generan, con el nombre de
-archivo exacto que espera `public/tokens/`.
+- **Primera línea, marcador de versión.** El plugin lo verifica y rechaza lo
+  que no entienda. El formato va a cambiar varias veces.
+- **Formato de líneas, no JSON**: Lua no trae parser de JSON de fábrica, y
+  así el archivo se puede corregir a mano.
+- **`deck-id` se deriva del contenido de la decklist**, no del nombre: el
+  nombre puede cambiar y el dispositivo tiene que seguir reconociendo que es
+  el mismo mazo. Reexportar la misma lista da el mismo id; dos listas
+  distintas dan ids distintos. (FNV-1a de 64 bits sobre los nombres de carta
+  normalizados y ordenados.)
+- **Saltos de línea en las reglas**: se codifican como `\n`, y la barra
+  invertida literal como `\\`. Se revierten en UNA pasada de izquierda a
+  derecha; encadenar dos reemplazos rompe el caso `\\n`. El propio archivo
+  lo documenta en sus comentarios.
+- **UTF-8 con saltos LF explícitos**: la descarga se arma con `TextEncoder`
+  y bytes, sin depender de lo que decida el navegador.
+- `pt` solo aparece en criaturas.
 
-## Restricciones e-ink (no negociables)
+## El mapeo de iconos
 
-- Exactamente 4 grises. Sin color, gradientes ni sombras.
-- Cero transiciones y cero animación. Único efecto permitido: la inversión
-  breve al cambiar de vista (`.eink-flash`).
-- Solo tap y long-press; targets mínimos de 48 px. Sin swipe, drag ni scroll
-  horizontal.
-- El layout solo se reacomoda cuando cambia el conjunto de tipos en juego,
-  nunca cuando cambia una cantidad.
-- Mobile primero.
+Vive en la web (`src/lib/icons.js`), no en el plugin. El plugin trae un set
+finito de imágenes; la web decide qué clave le toca a cada token y la
+escribe en el archivo. El plugin solo busca un archivo con ese nombre; si no
+lo encuentra, pinta un `?` grande.
+
+- Tabla explícita, pensada para editarse seguido: agregar una fila basta.
+- Criaturas por **subtipo** (así los nombra Scryfall: Goblin, Cat, Soldier
+  mapean directo). No criaturas (Blood, Clue, Treasure, Map, Food) por
+  **nombre**.
+- Sin coincidencia ⇒ **clave vacía**. No se inventa una clave ni se adivina
+  por aproximación: el `?` del dispositivo es la señal de qué iconos faltan
+  por dibujar, y ese dato tiene que llegar limpio.
+
+El `?` es un fallback de **arte**, no de datos: ese token igual lleva
+nombre, fuerza/resistencia y reglas completos en el archivo.
+
+La pantalla de revisión muestra la imagen que le tocaría a cada token, y
+avisa aparte de los que no tienen clave y de los que tienen clave pero el
+plugin todavía no empaqueta.
 
 ## Estructura
 
 - `src/lib/deck.js` — parser de decklists. Puro, sin React.
-- `src/lib/scryfall.js` — deriva tokens vía `/cards/collection` (lotes de 75,
-  ~100 ms de pausa, dedupe por `oracle_id`). Incluye colores y texto de
-  reglas para que el payload guardado sea autosuficiente.
-- `src/lib/session.js` — los dos contadores y sus transiciones. Puro.
-- `src/lib/storage.js` — `serializeDeck`/`deserializeDeck` (la costura que en
-  el futuro viajará a un dispositivo sin red) y el almacén en localStorage.
-- `scripts/test-parser.mjs` — pruebas del parser.
-- `scripts/test-session.mjs` — guion de partida contra la lógica de sesión.
-- `src/App.jsx` — todas las pantallas.
-
-## Publicación (GitHub Pages + PWA)
-
-La app vive en https://vlady95.github.io/papertokens/ como PWA offline-first:
-`vite build` genera `docs/` (rutas relativas, `base: './'`) y
-`scripts/build-sw.mjs` escribe `docs/sw.js`, que precachea todo el build con
-un nombre de caché derivado del contenido — cambia en cada publicación.
-GitHub Pages sirve `docs/` desde la rama `main`.
-
-Para publicar cambios:
-
-```
-npm run build
-git add -A && git commit -m "..." && git push
-```
-
-Esperar ~1 min a que Pages reconstruya y abrir la app con conexión para que
-tome la versión nueva.
+- `src/lib/scryfall.js` — resolución de tokens vía `/cards/collection`.
+- `src/lib/icons.js` — mapeo token → clave de icono.
+- `src/lib/export.js` — formato del archivo, escapado, `deck-id`, descarga.
+- `src/App.jsx` — las dos pantallas.
+- `koreader/` — el plugin donde se juega.
 
 ## Correr
 
@@ -121,15 +103,18 @@ npm install
 npm run dev -- --host
 ```
 
-Lógica probable sin navegador:
+Pruebas sin navegador:
 
 ```
-node scripts/test-parser.mjs
-node scripts/test-session.mjs
+node scripts/test-parser.mjs    # el parser, contra formatos reales
+node scripts/test-export.mjs    # formato de archivo, escapado, id, iconos
 ```
 
-## Qué mide este prototipo
+## Publicación
 
-1. Si el untap-all sin confirmación se toca por accidente en partidas
-   reales (si pasa seguido, se considerará deshacer — primero el dato).
-2. Si la heurística del `−` (tapeados primero) acierta lo suficiente.
+`npm run build` genera `docs/` (rutas relativas, PWA con service worker
+versionado). GitHub Pages sirve `docs/` desde `main`:
+https://vlady95.github.io/papertokens/
+
+Para publicar: `npm run build`, commit y push; esperar ~1 min a que Pages
+reconstruya y abrir la app con conexión para que tome la versión nueva.
