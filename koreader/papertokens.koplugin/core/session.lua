@@ -25,10 +25,12 @@ local layout = require("core/layout")
 
 local M = {}
 
-function M.new(profile, opts)
+-- deck: el mazo leído del archivo .txt (core/deckfile.lua).
+-- La zona activa arranca VACÍA: qué entra en juego se elige en la mesa.
+function M.new(deck, opts)
   opts = opts or {}
   return {
-    profile = profile,
+    profile = deck,
     active = {},   -- lista de { def_index, count_a, count_b }, orden de inserción
     ghosting_budget = opts.ghosting_budget or 10,
     partials = {},

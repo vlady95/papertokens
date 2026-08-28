@@ -34,6 +34,7 @@ local time = require("ui/time")
 local Screen = Device.screen
 
 local layout = require("core/layout")
+local registry = require("core/registry")
 local session = require("core/session")
 local Render = require("ui/render")
 
@@ -54,6 +55,10 @@ end
 
 function View:init()
     self.page = 0
+    -- El mazo viene del archivo .txt; el catálogo completo va al carrusel y
+    -- la zona activa arranca VACÍA: qué entra en juego se elige aquí, en la
+    -- mesa, no en la computadora.
+    self.mark_timer = nil
     self.expanded = nil     -- def mostrada en la vista expandida
     self.modal = nil        -- "reset" | "exit"
     self.partial_mode = self.partial_mode or "fast"
@@ -63,6 +68,7 @@ function View:init()
     Screen:setRotationMode(Screen.DEVICE_ROTATED_UPRIGHT) -- vertical, como la web
 
     self:computeGeometry()
+    self:scheduleUsageMark()
     self:registerTouchZones({
         {
             id = "papertokens_tap",
@@ -77,6 +83,18 @@ function View:init()
             handler = function(ges) return self:onHold(ges) end,
         },
     })
+end
+
+-- La marca de uso se escribe al CRUZAR los diez minutos, no al cerrar la
+-- sesión: una sesión más corta es una apertura accidental, y si solo se
+-- guardara al salir nunca se guardaría.
+function View:scheduleUsageMark()
+    if not self.on_used then return end
+    self.mark_timer = function()
+        self.on_used(self.session.profile.id, os.time())
+        self.mark_timer = nil
+    end
+    UIManager:scheduleIn(registry.SESSION_MARK_SECONDS, self.mark_timer)
 end
 
 -- ---- geometría ----
@@ -463,6 +481,10 @@ function View:onShow()
 end
 
 function View:onCloseWidget()
+    if self.mark_timer then
+        UIManager:unschedule(self.mark_timer)
+        self.mark_timer = nil
+    end
     Screen:setRotationMode(self.saved_rotation)
     return true
 end

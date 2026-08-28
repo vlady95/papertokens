@@ -183,12 +183,13 @@ local function best_size(target)
   return pick
 end
 
--- Devuelve BlitBuffer o nil. nil ⇒ el caller cae al nombre en tipografía:
--- jamás una caja vacía.
-local function load_icon(plugin_dir, art_key, target_px)
-  if not art_key or not plugin_dir then return nil end
+-- Devuelve BlitBuffer o nil. El plugin NO decide qué imagen va con cada
+-- token: usa la clave que trae el archivo y busca esa imagen. Si la clave
+-- viene vacía o no hay imagen, devuelve nil y el caller pinta un "?".
+local function load_icon(plugin_dir, icon_key, target_px)
+  if not icon_key or icon_key == "" or not plugin_dir then return nil end
   local size = best_size(target_px)
-  local leaf = art_key:match("([^/]+)$") or art_key
+  local leaf = icon_key
   local key = leaf .. "@" .. size
   if icon_cache[key] ~= nil then return icon_cache[key] or nil end
   local path = plugin_dir .. "/assets/" .. leaf .. "-" .. size .. ".png"
@@ -196,7 +197,7 @@ local function load_icon(plugin_dir, art_key, target_px)
     return RenderImage:renderImageFile(path, false, target_px, target_px)
   end)
   if not ok or not bb then
-    logger.warn("PaperTokens: falta el asset", path, "— fallback tipográfico")
+    logger.warn("PaperTokens: no hay imagen para la clave", icon_key, "(" .. path .. ")")
     icon_cache[key] = false
     return nil
   end
@@ -204,16 +205,22 @@ local function load_icon(plugin_dir, art_key, target_px)
   return bb
 end
 
+-- Sin imagen se pinta un "?" grande, del mismo tamaño que tendría la
+-- silueta. Nada de imagen genérica ni de aproximar por nombre: el "?" es
+-- una señal deliberada de qué iconos faltan por dibujar.
+--
+-- Es un fallback de ARTE, no de datos: el token igual muestra su nombre y
+-- sus contadores en la ficha, y su P/T y reglas en la vista expandida.
 local function draw_icon(bb, box, def, plugin_dir)
   local side = math.floor(math.min(box.w, box.h) * 0.82)
-  local icon = load_icon(plugin_dir, def.art_key, side)
+  local icon = load_icon(plugin_dir, def.icon, side)
   if icon then
     bb:blitFrom(icon, box.x + math.floor((box.w - side) / 2),
       box.y + math.floor((box.h - side) / 2), 0, 0, side, side)
   else
-    local face = face_px(math.max(14, math.floor(box.h * 0.18)))
-    draw_text_centered(bb, box.x, box.w, box.y + math.floor(box.h * 0.55), face,
-      ellipsize(face, def.name, box.w - 8, true), true, BLACK)
+    local face = face_px(math.max(16, math.floor(side * 0.86)))
+    draw_text_centered(bb, box.x, box.w,
+      box.y + math.floor(box.h / 2) + math.floor(side * 0.32), face, "?", true, BLACK)
   end
 end
 
@@ -416,7 +423,7 @@ function Render.expanded(bb, rect, def, opts)
   -- caja de reglas (abajo). Solo aquí se ve el texto de reglas.
   local rules_size = math.max(16, math.floor(ch * 0.030))
   local face_rules = face_px(rules_size)
-  local rules = def.abilities
+  local rules = def.rules
   if not rules or rules == "" then rules = "Sin texto de reglas." end
   local line_h = math.floor(rules_size * 1.35)
   local lines = {}

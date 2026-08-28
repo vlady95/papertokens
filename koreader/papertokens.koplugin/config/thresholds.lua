@@ -18,6 +18,15 @@ return {
   -- Píldora de contadores sobre cada carta
   pill_mm = 11,
 
+  -- Carpeta de mazos, hermana de koreader/ en la raíz de la partición: al
+  -- montar el Kindle por USB queda a la vista, sin buscar entre carpetas
+  -- del sistema.
+  decks_folder = "papertokens",
+
+  -- Subcarpeta a donde va lo archivado. Archivar es el "quitar de la
+  -- biblioteca" reversible: mueve el archivo, no lo borra.
+  archive_folder = "archivados",
+
   -- Presupuesto de ghosting: refrescos parciales por zona antes de forzar
   -- un refresco completo de esa zona.
   ghosting_budget = 10,

@@ -14,7 +14,7 @@ set -e
 
 cd "$(dirname "$0")"
 SRC="papertokens.koplugin"
-EXCLUDES="--exclude tests --exclude assets/src --exclude .DS_Store"
+EXCLUDES="--exclude assets/src --exclude .DS_Store"
 
 if [ -n "$1" ]; then
     IP="$1"
@@ -31,14 +31,27 @@ else
         exit 1
     fi
     DEST="$VOL/koreader/plugins/$SRC"
+    DECKS="$VOL/papertokens"
     echo "Deploy por USB a $DEST…"
     mkdir -p "$DEST"
     rsync -av --delete $EXCLUDES "$SRC/" "$DEST/"
+
+    # Carpeta de mazos, hermana de koreader/ para que se vea al montar por USB.
+    # Los .txt los genera la webapp; aquí solo se crea la carpeta, y si está
+    # vacía se deja el mazo de ejemplo para poder probar de una vez.
+    mkdir -p "$DECKS"
+    if [ -z "$(ls -A "$DECKS"/*.txt 2>/dev/null)" ]; then
+        cp "$SRC/tests/fixtures/jund-wildfire.txt" "$DECKS/"
+        echo "Carpeta de mazos vacía: copiado el mazo de ejemplo."
+    fi
+
     # FAT32 no guarda el bit de ejecución; nada del plugin lo necesita.
     sync
     echo ""
     echo "Copiado. Ahora en el Kindle:"
     echo "  1. Expulsa la unidad:  diskutil eject $VOL"
     echo "  2. Abre KOReader"
-    echo "  3. Menú ☰ → Herramientas (more tools) → PaperTokens → Nueva sesión"
+    echo "  3. Menú ☰ → Herramientas (more tools) → PaperTokens → Mazos"
+    echo ""
+    echo "Los .txt de mazo van en $DECKS (se generan en la webapp)."
 fi

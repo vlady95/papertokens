@@ -1,7 +1,7 @@
 -- main.lua — integración con KOReader. DESECHABLE.
 --
--- Patrón verificado contra plugins/hello.koplugin y readtimer.koplugin de la
--- instalación real (v2026.07.1): WidgetContainer:extend,
+-- Patrón verificado contra plugins/hello.koplugin y readtimer.koplugin de
+-- la instalación real (v2026.07.1): WidgetContainer:extend,
 -- self.ui.menu:registerToMainMenu(self), addToMainMenu con sorting_hint.
 --
 -- core/ NO hace require de nada de KOReader; esa dependencia vive solo aquí
@@ -17,9 +17,9 @@ local _ = require("gettext")
 local plugin_dir = debug.getinfo(1, "S").source:match("@?(.*)/[^/]*$")
 package.path = plugin_dir .. "/?.lua;" .. package.path
 
-local model = require("core/model")
 local session = require("core/session")
 local config = require("config/thresholds")
+local Library = require("ui/library")
 local View = require("ui/view")
 
 local PaperTokens = WidgetContainer:extend{
@@ -39,22 +39,36 @@ function PaperTokens:init()
     self.ui.menu:registerToMainMenu(self)
 end
 
-function PaperTokens:openSession()
-    local s = session.new(model.pauper_profile(), {
-        ghosting_budget = config.ghosting_budget,
-    })
+-- La biblioteca reescanea la carpeta en cada apertura: nada se cachea entre
+-- aperturas porque los archivos cambian constantemente por USB.
+function PaperTokens:openLibrary()
+    self.library = Library:new{
+        config = config,
+        plugin_dir = plugin_dir,
+        on_open = function(deck) self:openSession(deck) end,
+    }
+    logger.info("PaperTokens: biblioteca abierta")
+    UIManager:show(self.library)
+end
+
+function PaperTokens:openSession(deck)
+    local s = session.new(deck, { ghosting_budget = config.ghosting_budget })
     self.view = View:new{
         session = s,
         config = config,
         plugin_dir = plugin_dir,
         partial_mode = config.partial_mode,
+        -- la marca de uso la escribe la biblioteca, dueña del registro
+        on_used = function(deck_id, when)
+            if self.library then self.library:markUsed(deck_id, when) end
+        end,
     }
-    logger.info("PaperTokens: sesión abierta, ghosting =", config.ghosting_budget)
+    logger.info("PaperTokens: sesión de", deck.name, "con", #deck.tokens, "tokens")
     UIManager:show(self.view)
 end
 
 function PaperTokens:onPaperTokensOpen()
-    self:openSession()
+    self:openLibrary()
     return true
 end
 
@@ -64,8 +78,8 @@ function PaperTokens:addToMainMenu(menu_items)
         sorting_hint = "more_tools",
         sub_item_table = {
             {
-                text = _("Nueva sesión"),
-                callback = function() self:openSession() end,
+                text = _("Mazos"),
+                callback = function() self:openLibrary() end,
             },
             {
                 text = _("Refresco parcial: fast"),

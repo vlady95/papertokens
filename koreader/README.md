@@ -55,10 +55,14 @@ no en píxeles: un orbe de 130 px es cómodo a 300 dpi e inusable a 125.
 
 ```
 cd papertokens.koplugin
-luajit tests/run.lua       # 114 checks: layout, fidelidad con la web, sesión
-luajit tests/report.lua    # tamaño de carta real por dispositivo
+luajit tests/run.lua           # 114 checks: layout, fidelidad con la web, sesión
+luajit tests/test-library.lua  # 30 checks: lectura de archivos y registro de uso
+luajit tests/report.lua        # tamaño de carta real por dispositivo
 luajit tests/preview.lua > /tmp/preview.svg   # cómo se ve la pantalla
 ```
+
+Las pruebas corren contra `tests/fixtures/jund-wildfire.txt`, un archivo
+generado de verdad por la webapp contra Scryfall, no un objeto inventado.
 
 `preview.lua` usa los mismos `core/layout.lua` y `core/metrics.lua` que el
 render del dispositivo, así que la geometría que muestra es la real.
@@ -101,12 +105,86 @@ Cada refresco se loguea a `koreader/crash.log` como
 
 En modo USB mass storage KOReader no está corriendo: tras copiar hay que
 expulsar la unidad (`diskutil eject /Volumes/Kindle`) y abrir KOReader. El
-plugin aparece en **☰ → herramientas → PaperTokens → Nueva sesión**.
+plugin aparece en **☰ → herramientas → PaperTokens → Mazos**.
 
-## Fuera de alcance en esta fase
+## De dónde salen los mazos
 
-Sin red: el catálogo son los seis tokens de Pauper hardcoded en
-`core/model.lua`. Crear un deck pegando una decklist vive en la app web; los
-campos de `TokenDef` ya replican el payload autosuficiente que produce
-`serializeDeck` allá, para que un perfil pueda viajar de la web al
-dispositivo sin depender de Scryfall en la mesa.
+De una carpeta de archivos `.txt`, uno por mazo, colocados a mano por USB en
+`papertokens/` en la raíz de la partición del Kindle — hermana de
+`koreader/`, para que se vea al montar el dispositivo. Cada archivo lo
+genera la webapp y es autosuficiente.
+
+El plugin **no tiene red y no sabe nada de Magic**: no consulta Scryfall, no
+deduce, no completa datos que falten. Solo lee y pinta.
+
+- **Reescanea en cada apertura.** Nada se cachea al arrancar: los archivos
+  cambian constantemente.
+- **Verifica el marcador de versión** de la primera línea. Lo que no
+  reconoce, lo rechaza.
+- **Valida cada token al leerlo.** Un archivo truncado o editado a mano no
+  deja la biblioteca a medias: se rechaza ese archivo entero, se lista
+  aparte con su motivo, y los demás siguen disponibles.
+- **Revierte los saltos de línea** codificados del texto de reglas, en una
+  sola pasada de izquierda a derecha.
+
+## El registro interno de uso
+
+El orden de la biblioteca **no** puede salir de la fecha de modificación del
+archivo: copiar por USB reescribe los timestamps y todos los mazos
+parecerían recién usados.
+
+El plugin lleva su propio registro, guardado aparte de los `.txt` e indexado
+por el **identificador estable** del mazo, no por nombre ni por ruta: así
+renombrar el archivo o el mazo no rompe el historial.
+
+La marca se escribe **al cruzar los diez minutos de sesión**, no al
+cerrarla: una sesión más corta es una apertura accidental, y si solo se
+guardara al salir nunca se guardaría. Al reescanear se limpian las entradas
+que ya no corresponden a ningún archivo presente.
+
+## Selección de tokens
+
+El archivo trae **todos** los tokens del mazo. Al abrirlo, el catálogo
+completo aparece en el carrusel y la zona activa arranca vacía: qué entra en
+juego se elige aquí, en la mesa. Tap en una miniatura mete ese tipo en
+juego.
+
+## Iconos y el `?`
+
+El plugin trae empaquetado un set finito de imágenes y **no decide** cuál va
+con cada token: usa la clave que viene en el archivo y busca la imagen con
+ese nombre.
+
+Si la clave viene vacía, o no existe imagen para esa clave, pinta un `?`
+grande ocupando el mismo espacio que tendría la silueta. Nada de imagen
+genérica ni de aproximar: el `?` es una señal deliberada de qué iconos
+faltan por dibujar.
+
+Es un fallback de **arte**, no de datos: ese token igual muestra su nombre y
+sus contadores en la ficha, y su fuerza/resistencia y texto de reglas
+completos en la vista expandida.
+
+## Borrar y archivar
+
+Desde la biblioteca, long-press sobre un mazo:
+
+- **Archivar** — mueve el archivo a `papertokens/archivados/`. Es el "quitar
+  de la biblioteca" reversible.
+- **Borrar** — elimina el archivo del disco y su entrada del registro en la
+  misma operación, para que nunca quede huérfana. Es irreversible y el
+  archivo puede ser la única copia, así que va detrás de long-press **y** de
+  una confirmación explícita.
+
+## Pendiente de verificar en el device
+
+El Kindle estaba desconectado al escribir la biblioteca. Todo lo demás se
+comprobó contra la instalación real; estas dos llamadas no, y viven
+aisladas en `ui/files.lua`, envueltas en `pcall` para que un fallo se vea en
+pantalla en vez de reventar:
+
+- `require("libs/libkoreader-lfs")` — listar el directorio.
+- `require("datastorage"):getSettingsDir()` — dónde guardar el registro de
+  uso (hay respaldo si el método no existe).
+
+También quedan por confirmar `UIManager:scheduleIn` / `unschedule`, que usa
+la marca de los diez minutos.

@@ -1,0 +1,72 @@
+PAPERTOKENS 1
+# PaperTokens — catálogo de tokens de un mazo.
+# Generado por la webapp; se copia a mano a la carpeta del plugin.
+#
+# Formato de líneas: "clave valor", una por línea. Codificación UTF-8,
+# saltos de línea LF. Los bloques de token empiezan con una línea "token"
+# y terminan en la línea en blanco siguiente.
+#
+# En los valores, los saltos de línea van codificados como \n y la barra
+# invertida literal como \\. Para revertirlos hay que recorrer el valor
+# UNA vez de izquierda a derecha: al ver \ se mira el carácter siguiente,
+# \ produce una barra y n produce un salto. Encadenar dos reemplazos
+# rompe el caso "\\n" (barra literal seguida de ene).
+#
+# "icon" es la clave de imagen que el plugin debe buscar. Si viene vacía,
+# o si el plugin no trae esa imagen, se pinta un "?" — pero el token
+# igual lleva nombre, fuerza/resistencia y reglas completos aquí.
+
+deck-id 72ebc84bcd2c86bc
+deck-name Jund Wildfire
+
+token
+name Clue
+oracle-id 496e1083-c792-40a4-adf4-fec1d559cd5e
+type Token Artifact — Clue
+colors 
+icon clue
+rules {2}, Sacrifice this token: Draw a card.
+
+token
+name Eldrazi Spawn
+oracle-id 3aaf906a-e749-4e86-ac79-97650b92f271
+type Token Creature — Eldrazi Spawn
+pt 0/1
+colors 
+icon eldrazi-spawn
+rules Sacrifice this creature: Add {C}.
+
+token
+name Human Soldier
+oracle-id a4095286-d51b-4527-b6ce-23aa539fc23a
+type Token Creature — Human Soldier
+pt 1/1
+colors W
+icon human-soldier
+rules 
+
+token
+name Map
+oracle-id c050f054-1ccf-4819-bc30-a928aed60c56
+type Token Artifact — Map
+colors 
+icon map
+rules {1}, {T}, Sacrifice this artifact: Target creature you control explores. Activate only as a sorcery. (Reveal the top card of your library. Put that card into your hand if it's a land. Otherwise, put a +1/+1 counter on that creature, then put the card back or put it into your graveyard.)
+
+token
+name Spirit
+oracle-id dc4e2134-f0c2-49aa-9ea3-ebf83af1445c
+type Token Creature — Spirit
+pt 1/1
+colors W
+icon spirit
+rules Flying
+
+token
+name Squirrel
+oracle-id 67f21c0c-2083-4eda-9dc3-cc8aee42289f
+type Token Creature — Squirrel
+pt 1/1
+colors G
+icon squirrel
+rules 

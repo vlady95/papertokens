@@ -96,8 +96,8 @@ check(a[1].card.w == b[1].card.w and a[2].card.y == b[2].card.y,
 
 -- ---- sesión: el guion de la partida real ----
 print("sesión (guion de la web)")
-local s = session.new(model.pauper_profile())
-local GOBLIN, SPIRIT = 4, 5 -- índices en el perfil hardcoded
+local s = session.new(require("tests/fixture"))
+local A = 2 -- un token cualquiera del mazo de ejemplo
 
 local function counts(i)
   local t = s.active[i]
@@ -105,9 +105,9 @@ local function counts(i)
   return t.count_a .. " destapados, " .. t.count_b .. " tapeados"
 end
 
-check(session.create(s, GOBLIN).kind == "reflow", "tipo nuevo ⇒ reflow")
-check(session.create(s, GOBLIN).kind == "partial", "misma cantidad ⇒ parcial, nunca reflow")
-session.create(s, GOBLIN)
+check(session.create(s, A).kind == "reflow", "tipo nuevo ⇒ reflow")
+check(session.create(s, A).kind == "partial", "misma cantidad ⇒ parcial, nunca reflow")
+session.create(s, A)
 check(counts(1) == "3 destapados, 0 tapeados", "creo 3: " .. counts(1))
 
 session.tap(s, 1)
@@ -152,7 +152,7 @@ check(session.reset(s).kind == "reflow", "reiniciar ⇒ reflow")
 check(#s.active == 0, "reiniciar vacía la zona activa")
 
 -- presupuesto de ghosting
-local g = session.new(model.pauper_profile(), { ghosting_budget = 3 })
+local g = session.new(require("tests/fixture"), { ghosting_budget = 3 })
 session.create(g, 1)
 session.create(g, 1)
 session.create(g, 1)

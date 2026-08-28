@@ -9,7 +9,6 @@ package.path = "./?.lua;" .. package.path
 
 local layout = require("core/layout")
 local metrics = require("core/metrics")
-local model = require("core/model")
 local config = require("config/thresholds")
 
 local W, H, DPI = 1072, 1448, 300
@@ -21,7 +20,7 @@ local ORB = px(config.orb_mm)
 local PILL = px(config.pill_mm)
 local GAP = px(2)
 
-local defs = model.pauper_profile().defs
+local defs = require("tests/fixture").tokens
 -- Estado de ejemplo: cuatro tipos con cantidades distintas.
 local active = {
   { def = defs[1], a = 2, b = 1 },
@@ -122,7 +121,8 @@ for i, t in ipairs(active) do
     math.floor(m.title.h * 0.60), letter, "end")
 
   rrect(m.art.x, m.art.y, m.art.w, m.art.h, math.floor(cw * metrics.art_radius), "none", "#000", m.bar_bw)
-  local leaf = t.def.art_key:match("([^/]+)$"):sub(1, 2):upper()
+  -- sin clave de icono el dispositivo pinta un "?"; aquí se refleja igual
+  local leaf = (t.def.icon ~= "") and t.def.icon:sub(1, 2):upper() or "?"
   text(m.art.x + math.floor(m.art.w / 2), m.art.y + math.floor(m.art.h * 0.60),
     math.floor(m.art.h * 0.45), leaf, "middle", "#d9d9d9")
 
@@ -181,7 +181,7 @@ for k = 0, 3 do
   local in_play = (k == 0 or k == 3)
   rrect(ix, iy, side, side, math.floor(side * 0.22), in_play and "#000" or "#fff", "#000", 3)
   text(ix + math.floor(side / 2), iy + math.floor(side * 0.66), math.floor(side * 0.42),
-    def.art_key:match("([^/]+)$"):sub(1, 2):upper(), "middle", in_play and "#fff" or "#d9d9d9")
+    ((def.icon ~= "") and def.icon:sub(1,2):upper() or "?"), "middle", in_play and "#fff" or "#d9d9d9")
   local lbl = def.name
   local maxch = math.max(4, math.floor((slot - 6) / (CAROUSEL * 0.062)))
   if #lbl > maxch then lbl = lbl:sub(1, maxch) .. "…" end
