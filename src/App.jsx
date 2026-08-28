@@ -92,6 +92,10 @@ export default function App() {
           </div>
         )}
         {error && <div className="status error">{error}</div>}
+        <p className="hint crosslink">
+          ¿Jugar desde el teléfono en vez de generar para el Kindle?{' '}
+          <a href="jugar/">Abrir PaperTokens Jugar</a>
+        </p>
       </div>
     );
   }

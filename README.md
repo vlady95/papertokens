@@ -3,18 +3,23 @@
 Registro de tokens de Magic: The Gathering para jugar con cartas físicas en
 la mesa, en un dispositivo e-ink.
 
-El proyecto son dos piezas:
+El proyecto son tres piezas, dos de ellas web:
 
-- **La webapp** (esta carpeta) — un **generador**. Se pega una decklist, se
-  resuelve contra Scryfall, se revisa, se nombra el mazo y se descarga un
-  `.txt`. Nada más: aquí no se juega.
-- **El plugin de KOReader** (`koreader/`) — donde se juega. Lee esos `.txt`
-  desde una carpeta del Kindle, sin red.
+| Pieza | URL | Para qué |
+|---|---|---|
+| **Generador** | [/papertokens/](https://vlady95.github.io/papertokens/) | Auxiliar del Kindle: se pega una decklist, se revisa y se descarga el `.txt` que lee el plugin. Aquí no se juega. |
+| **Jugar** | [/papertokens/jugar/](https://vlady95.github.io/papertokens/jugar/) | La app completa de mesa, desde el teléfono: pegar mazo, elegir tokens, contadores, untap-all, carrusel y vista expandida. Guarda los mazos en el navegador. |
+| **Plugin de KOReader** | `koreader/` | Lo mismo que "Jugar", pero en el Kindle e-ink. Lee los `.txt` del generador, sin red. |
 
-El archivo se copia a mano de la Mac al Kindle. No hay backend, ni cuentas,
-ni sincronización, ni persistencia en el navegador.
+Las dos webs son PWA instalables por separado, con su propio icono y nombre
+("PT Generador" y "PaperTokens"). Comparten un solo service worker en la
+raíz del sitio, cuyo scope cubre ambas, así que las dos funcionan sin
+conexión con un único precache.
 
-## Flujo de la webapp
+El archivo del Kindle se copia a mano de la Mac al dispositivo. No hay
+backend, ni cuentas, ni sincronización entre las piezas.
+
+## Flujo del generador
 
 1. Pegar la decklist en el textarea. Botón **Analizar**.
 2. Se resuelve contra Scryfall (lotes de 75, dedupe por `oracle_id`).
@@ -89,12 +94,26 @@ plugin todavía no empaqueta.
 
 ## Estructura
 
+Compartido por las dos webs:
+
 - `src/lib/deck.js` — parser de decklists. Puro, sin React.
 - `src/lib/scryfall.js` — resolución de tokens vía `/cards/collection`.
+
+Solo del generador (`/`):
+
 - `src/lib/icons.js` — mapeo token → clave de icono.
 - `src/lib/export.js` — formato del archivo, escapado, `deck-id`, descarga.
-- `src/App.jsx` — las dos pantallas.
-- `koreader/` — el plugin donde se juega.
+- `src/App.jsx`, `src/index.css` — las dos pantallas.
+
+Solo de la app de mesa (`/jugar/`):
+
+- `src/lib/session.js` — los dos contadores y sus transiciones. Puro.
+- `src/lib/storage.js` — mazos guardados en el navegador.
+- `src/jugar/` — pantallas, estilos y resolución de arte de esa app.
+
+Y el dispositivo:
+
+- `koreader/` — el plugin donde se juega en el Kindle.
 
 ## Correr
 
@@ -108,13 +127,16 @@ Pruebas sin navegador:
 ```
 node scripts/test-parser.mjs    # el parser, contra formatos reales
 node scripts/test-export.mjs    # formato de archivo, escapado, id, iconos
+node scripts/test-session.mjs   # la lógica de partida de la app de mesa
 ```
 
 ## Publicación
 
-`npm run build` genera `docs/` (rutas relativas, PWA con service worker
-versionado). GitHub Pages sirve `docs/` desde `main`:
-https://vlady95.github.io/papertokens/
+`npm run build` genera `docs/` con las dos apps (rutas relativas, PWA con
+service worker versionado). GitHub Pages sirve `docs/` desde `main`:
+
+- https://vlady95.github.io/papertokens/ — generador
+- https://vlady95.github.io/papertokens/jugar/ — app de mesa
 
 Para publicar: `npm run build`, commit y push; esperar ~1 min a que Pages
 reconstruya y abrir la app con conexión para que tome la versión nueva.

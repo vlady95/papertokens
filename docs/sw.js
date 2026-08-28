@@ -1,9 +1,12 @@
 // Generado por scripts/build-sw.mjs — no editar a mano.
-const CACHE = 'papertokens-27f3a3a5a723';
+const CACHE = 'papertokens-9429f1290d99';
 const PRECACHE = [
   "./",
-  "./assets/index-BiRGB_Hv.css",
-  "./assets/index-Chr85PrC.js",
+  "./assets/generador-CkG-zhYz.js",
+  "./assets/generador-DiOH7K3y.css",
+  "./assets/jsx-runtime-COUN5H8Y.js",
+  "./assets/jugar-B58n-7HU.css",
+  "./assets/jugar-DMwxsrgB.js",
   "./favicon.svg",
   "./icons.svg",
   "./icons/apple-touch-icon.png",
@@ -11,6 +14,8 @@ const PRECACHE = [
   "./icons/icon-512.png",
   "./icons/icon.svg",
   "./index.html",
+  "./jugar/index.html",
+  "./jugar/manifest.webmanifest",
   "./manifest.webmanifest",
   "./tokens-preview.html",
   "./tokens/bird.svg",

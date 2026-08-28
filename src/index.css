@@ -101,6 +101,17 @@ code {
   margin: 12px 0;
 }
 
+.crosslink {
+  border-top: 1px solid var(--gray-light);
+  padding-top: 12px;
+  margin-top: 20px;
+}
+
+.crosslink a,
+.section a {
+  color: var(--ink);
+}
+
 .stats {
   color: var(--gray-mid);
   font-size: 14px;

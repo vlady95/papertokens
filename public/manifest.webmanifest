@@ -1,7 +1,7 @@
 {
-  "name": "PaperTokens",
-  "short_name": "PaperTokens",
-  "description": "Registro de tokens de Magic para jugar en la mesa.",
+  "name": "PaperTokens · Generador",
+  "short_name": "PT Generador",
+  "description": "Genera el archivo de tokens de un mazo para el Kindle.",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",
