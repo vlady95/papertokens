@@ -19,6 +19,10 @@ conexión con un único precache.
 El archivo del Kindle se copia a mano de la Mac al dispositivo. No hay
 backend, ni cuentas, ni sincronización entre las piezas.
 
+**[CONTEXTO.md](CONTEXTO.md)** resume todo el diseño, las decisiones y el
+inventario de funciones en un solo documento, para poner al día a alguien
+—o a un chat— que no vio cómo se llegó hasta aquí.
+
 ## Flujo del generador
 
 1. Pegar la decklist en el textarea. Botón **Analizar**.
