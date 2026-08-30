@@ -48,8 +48,14 @@ check(iconKey(t('Zombie', 'Token Creature — Zombie')) === '',
   'sin coincidencia ⇒ clave vacía, no se inventa');
 check(iconKey(t('Wurm', 'Token Creature — Phyrexian Wurm')) === '',
   'subtipo desconocido ⇒ vacío, no aproxima');
-check(isPackaged('cat') && !isPackaged('goblin') && !isPackaged(''),
-  'se distingue lo que el plugin ya trae empaquetado');
+// Hoy las 14 claves están empaquetadas (npm run icons las mantiene a la
+// par). Lo que se prueba es el mecanismo: una clave futura, todavía sin
+// arte, tiene que reportarse como no empaquetada para que la revisión
+// avise antes de que el dispositivo pinte un "?".
+check(isPackaged('cat') && isPackaged('goblin'),
+  'lo que el plugin trae se reporta como empaquetado');
+check(!isPackaged('zombie') && !isPackaged(''),
+  'una clave sin arte, o vacía, no se reporta como empaquetada');
 
 // ---- archivo completo ----
 const tokens = [

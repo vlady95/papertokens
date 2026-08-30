@@ -14,7 +14,7 @@
 <p>Hoja de contactos de las ilustraciones placeholder. Edita la lista en este archivo al agregar arte.</p>
 <div class="grid" id="g"></div>
 <script>
-  const names = ['goblin','bird','clue','spirit','squirrel','elemental','plant','eldrazi-spawn','food','treasure','map','human-soldier'];
+  const names = ['bird','blood','cat','clue','eldrazi-spawn','elemental','food','goblin','human-soldier','map','plant','spirit','squirrel','treasure'];
   document.getElementById('g').innerHTML = names.map(n =>
     `<div class="cell"><img src="tokens/${n}.svg" alt="${n}"><div class="name">${n}</div></div>`).join('');
 </script>

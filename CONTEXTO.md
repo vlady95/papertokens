@@ -283,31 +283,31 @@ fallo se vea en pantalla en vez de reventar:
 
 ---
 
-## 6. Estado del arte de iconos (disparidad conocida)
+## 6. El arte de iconos
 
-El mapeo puede emitir **14 claves**, pero los tres sets de imágenes no
-coinciden:
+**Una sola fuente**: `public/tokens/<clave>.svg` (arte de línea, trazo negro
+sobre 200×200). De ahí sale todo:
 
-| Set | Cuántos | Cuáles |
-|---|---|---|
-| Web `public/tokens/*.svg` | 12 | bird, clue, eldrazi-spawn, elemental, food, goblin, human-soldier, map, plant, spirit, squirrel, treasure |
-| Plugin `assets/*.png` (96/160/224) | 6 | blood, cat, clue, eldrazi-spawn, human-soldier, map |
-| **En ambos** | **4** | clue, eldrazi-spawn, human-soldier, map |
+```
+npm run icons
+```
 
-- Solo en la web (**el Kindle pintará `?`**): bird, elemental, food, goblin,
-  plant, spirit, squirrel, treasure.
-- Solo en el plugin (**la web previsualiza `?`**): blood, cat.
+rasteriza cada SVG a `koreader/.../assets/<clave>-{96,160,224}.png` (el
+dispositivo nunca rasteriza SVG), borra los PNG de claves que ya no existen,
+y reescribe `PACKAGED_IN_PLUGIN` en `src/lib/icons.js` y la lista de
+`public/tokens-preview.html`. Agregar un icono = soltar un SVG + correr eso.
 
-La pantalla de revisión ya avisa "el plugin aún no lo trae" usando
-`PACKAGED_IN_PLUGIN`, que sí está correcto. Falta rasterizar los 8 SVG de la
-web a PNG del plugin, y dibujar blood/cat para la web.
+Hoy son **14 claves**, las mismas en los tres lugares: bird, blood, cat,
+clue, eldrazi-spawn, elemental, food, goblin, human-soldier, map, plant,
+spirit, squirrel, treasure.
 
-Archivos huérfanos detectados, sin referencias: `src/assets/hero.png`,
-`src/assets/vite.svg`, `public/icons.svg`, `decks/sample-pauper.txt`
-(lo usa a mano `scripts/common-pauper-tokens.mjs`), `public/tokens-preview.html`
-(hoja de contactos que se abre a mano, lista desactualizada sin blood/cat).
+Antes había tres sets desincronizados (web 12, plugin 6, solo 4 en común) y
+dos estilos mezclados —línea en la web, silueta sólida en el plugin—.
+Resuelto: el plugin usa el arte de línea de la web, y `assets/src/` (las
+siluetas viejas) se eliminó para que no haya una segunda fuente.
 
----
+`public/tokens-preview.html` es una hoja de contactos que se abre a mano
+para ver todo el set de un vistazo.
 
 ## 7. Publicación
 

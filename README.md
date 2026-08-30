@@ -96,6 +96,14 @@ La pantalla de revisión muestra la imagen que le tocaría a cada token, y
 avisa aparte de los que no tienen clave y de los que tienen clave pero el
 plugin todavía no empaqueta.
 
+### Una sola fuente de arte
+
+`public/tokens/<clave>.svg` es el único origen. `npm run icons` rasteriza
+esos SVG a los PNG que empaqueta el plugin (96/160/224 px, porque el
+dispositivo nunca rasteriza SVG) y de paso actualiza la lista
+`PACKAGED_IN_PLUGIN` y la hoja de contactos. Agregar un icono es soltar un
+SVG y correr ese comando.
+
 ## Estructura
 
 Compartido por las dos webs:

@@ -43,12 +43,20 @@ export const ICON_BY_NAME = {
 // avisar en la pantalla de revisión: una clave fuera de esta lista se
 // exporta igual, y en el dispositivo saldrá "?" hasta que se dibuje.
 export const PACKAGED_IN_PLUGIN = [
+  'bird',
   'blood',
   'cat',
   'clue',
   'eldrazi-spawn',
+  'elemental',
+  'food',
+  'goblin',
   'human-soldier',
   'map',
+  'plant',
+  'spirit',
+  'squirrel',
+  'treasure',
 ];
 
 // Subtipos de una línea de tipo: lo que va después del guion largo.

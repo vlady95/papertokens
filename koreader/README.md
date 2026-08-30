@@ -155,6 +155,11 @@ El plugin trae empaquetado un set finito de imágenes y **no decide** cuál va
 con cada token: usa la clave que viene en el archivo y busca la imagen con
 ese nombre.
 
+El arte NO se edita aquí: los PNG de `assets/` se generan desde
+`public/tokens/*.svg` —la misma fuente que usa la web— con `npm run icons`
+en la raíz del repo. Así los dos lados no pueden desincronizarse: agregar un
+icono es soltar un SVG y correr ese comando.
+
 Si la clave viene vacía, o no existe imagen para esa clave, pinta un `?`
 grande ocupando el mismo espacio que tendría la silueta. Nada de imagen
 genérica ni de aproximar: el `?` es una señal deliberada de qué iconos

@@ -14,7 +14,7 @@ set -e
 
 cd "$(dirname "$0")"
 SRC="papertokens.koplugin"
-EXCLUDES="--exclude assets/src --exclude .DS_Store"
+EXCLUDES="--exclude .DS_Store"
 
 if [ -n "$1" ]; then
     IP="$1"

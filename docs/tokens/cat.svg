@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none" stroke="#000" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+  <!-- cabeza con orejas -->
+  <path d="M66 62 L60 30 L84 48 Q100 42 116 48 L140 30 L134 62 Q148 78 144 98 Q138 122 100 124 Q62 122 56 98 Q52 78 66 62 Z" />
+  <!-- ojos y nariz -->
+  <circle cx="84" cy="84" r="5" fill="#000" stroke="none" />
+  <circle cx="116" cy="84" r="5" fill="#000" stroke="none" />
+  <path d="M94 100 L106 100 L100 108 Z" />
+  <!-- bigotes -->
+  <path d="M62 96 L40 92 M62 104 L42 108" stroke-width="4" />
+  <path d="M138 96 L160 92 M138 104 L158 108" stroke-width="4" />
+  <!-- cuerpo sentado -->
+  <path d="M100 124 Q140 128 148 166 Q150 180 136 182 L64 182 Q50 180 52 166 Q60 128 100 124 Z" />
+  <!-- cola enroscada -->
+  <path d="M136 182 Q170 180 174 154 Q176 136 162 130 Q170 142 166 154 Q160 170 138 172" />
+</svg>
