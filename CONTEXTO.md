@@ -6,7 +6,7 @@ lo que existe y funciona hoy. Si en el chat se decidió algo que no aparece
 en este documento, no está implementado.
 
 Repo: `github.com/vlady95/papertokens` (público, rama `main`).
-Última actualización de este documento: commit `987f999`.
+Última actualización de este documento: commit `313736c`.
 
 ---
 
@@ -237,7 +237,7 @@ juego es efímera: recargar o salir la descarta, sin recuperación.
 
 ```
 node scripts/test-parser.mjs     # parser contra formatos reales
-node scripts/test-export.mjs     # 38 checks: formato, escapado, id, iconos
+node scripts/test-export.mjs     # 39 checks: formato, escapado, id, iconos
 node scripts/test-session.mjs    # guion de partida de la app de mesa
 
 cd koreader/papertokens.koplugin
